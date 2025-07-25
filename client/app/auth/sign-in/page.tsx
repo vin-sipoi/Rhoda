@@ -232,7 +232,7 @@ export default function Component() {
 
                 {/* Google Sign In */}
                 <Button
-                  variant="outline"
+                  
                   className="w-full h-12 rounded-xl bg-transparent border-white/30 text-white hover:bg-white/10"
                 >
                   <div className="flex items-center space-x-3">
@@ -310,7 +310,7 @@ export default function Component() {
                   <div className="flex space-x-4 pt-4">
                     <Button
                       onClick={handlePasteCode}
-                      variant="outline"
+                     
                       className="flex-1 h-12 rounded-xl bg-white/20 border-white/30 text-white hover:bg-white/30"
                     >
                       Paste Code
@@ -318,7 +318,7 @@ export default function Component() {
                     <Button
                       onClick={handleResendCode}
                       disabled={resendTimer > 0}
-                      variant="ghost"
+                     
                       className="flex-1 h-12 rounded-xl text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {resendTimer > 0 ? `Resend (${formatTime(resendTimer)})` : "Resend Code"}
