@@ -45,7 +45,9 @@ const LandingPage = () => {
       
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4 relative z-10 flex-shrink-0">
-        <span className="font-bold text-2xl">Rhoda</span>
+        <Link href="/home-page">
+          <span className="font-bold text-2xl">Rhoda</span>
+        </Link>
           <Link href="/auth/sign-in">
             <button className="cursor-pointer border border-gray-200 hover:bg-gray-600 hover:text-white rounded-lg py-2 px-6 text-base font-medium transform transition hover:-translate-y-1 delay-150 duration-300 ease-in-out">
               Sign In
