@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import Link from "next/link"
 
 type AuthStep = "welcome" | "verify-email" | "verify-phone"
 type AuthMethod = "phone" | "email"
@@ -148,7 +149,9 @@ export default function Component() {
 
       {/* Rhoda Logo */}
       <div className="absolute top-8 left-8 z-10">
-        <h1 className="text-white text-3xl font-bold">Rhoda</h1>
+        <Link href="/" className="relative z-20 block">
+          <h1 className="text-white text-3xl font-bold">Rhoda</h1>
+        </Link>
       </div>
 
       {/* Main Content */}

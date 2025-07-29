@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Bell, User } from 'lucide-react';
 import Squares from '@/components/Squares';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 interface NavLinkProps {
   children: React.ReactNode;
@@ -73,9 +74,9 @@ const RhodaDashboard: React.FC = () => {
       
       {/* Navigation Header */}
       <nav className="font-hahmlet flex items-center justify-between px-8 py-6 relative z-10  cursor-pointer">
-        <div className="text-white text-2xl font-bold">
+        <Link href="/" className="text-white text-2xl font-bold">
           Rhoda
-        </div>
+        </Link>
         
         <div className="font-space-grotesk flex items-center space-x-8  px-5">          
             <NavLink>Dashboard</NavLink>

@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import Link from "next/link"
 
 import { Bell, List, LinkIcon, Quote, Italic, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -528,15 +529,15 @@ export default function RhodaEditor() {
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center justify-between px-8 py-4">
           {/* Logo */}
-          <div className="text-white text-xl font-semibold tracking-tight">Rhoda</div>
+          <Link href="/" className="text-white text-xl font-semibold tracking-tight">Rhoda</Link>
 
           {/* Right Side - Navigation Links + Actions */}
           <div className="flex items-center space-x-8">
             {/* Navigation Links */}
             <div className="flex items-center space-x-8">
-              <span className="text-white/80 hover:text-white cursor-pointer text-sm font-medium transition-colors">
+              <Link href="/dashboard" className="text-white/80 hover:text-white cursor-pointer text-sm font-medium transition-colors">
                 Dashboard
-              </span>
+              </Link>
               <span className="text-white cursor-pointer text-sm font-medium">Content</span>
               <span className="text-white/80 hover:text-white cursor-pointer text-sm font-medium transition-colors">
                 About Us
