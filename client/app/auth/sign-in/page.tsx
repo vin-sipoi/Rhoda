@@ -147,12 +147,11 @@ export default function Component() {
         }}
       />
 
-      {/* Rhoda Logo */}
-      <div className="absolute top-8 left-8 z-10">
-        <Link href="/" className="relative z-20 block">
-          <h1 className="text-white text-3xl font-bold">Rhoda</h1>
+      <header className="flex justify-between items-center px-6 py-4 relative z-10 flex-shrink-0">
+        <Link href="/">
+          <span className="font-bold text-2xl">Rhoda</span>
         </Link>
-      </div>
+      </header>
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
