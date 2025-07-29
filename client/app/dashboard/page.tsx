@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Bell, User } from 'lucide-react';
 import Squares from '@/components/Squares';
+import { useRouter } from 'next/navigation';
 
 interface NavLinkProps {
   children: React.ReactNode;
@@ -22,12 +23,14 @@ interface ButtonProps {
   children: React.ReactNode;
   variant?: 'primary' | 'secondary';
   className?: string;
+  onClick?: () => void;
 }
 
 const Button: React.FC<ButtonProps> = ({ 
   children, 
   variant = 'primary', 
-  className = '' 
+  className = '',
+  onClick
 }) => {
   const baseClasses = "px-6 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105";
   const variantClasses = variant === 'primary' 
@@ -35,7 +38,7 @@ const Button: React.FC<ButtonProps> = ({
     : "bg-white/10 hover:bg-white/20 text-white border border-white/20";
   
   return (
-    <button className={`${baseClasses} ${variantClasses} ${className}`}>
+    <button className={`${baseClasses} ${variantClasses} ${className}`} onClick={onClick}>
       {children}
     </button>
   );
@@ -43,8 +46,13 @@ const Button: React.FC<ButtonProps> = ({
 
 const RhodaDashboard: React.FC = () => {
   const [user,setUser] = useState(false);
+  const router = useRouter();
 
   const userName = 'John'
+
+  const handleWriteClick = () => {
+    router.push('/content');
+  };
 
   return (
     <div className="min-h-screen relative overflow-hidden">
@@ -75,7 +83,7 @@ const RhodaDashboard: React.FC = () => {
             <NavLink>About Us</NavLink>
 
           <div className="flex items-center space-x-4 ml-5">
-            <Button variant="primary" className="text-sm">
+            <Button variant="primary" className="text-sm" onClick={handleWriteClick}>
               Create Content
             </Button>
             <button className="text-white/80 hover:text-white transition-colors">
@@ -109,7 +117,7 @@ const RhodaDashboard: React.FC = () => {
           
           {/* CTA Button */}
           <div className="pt-4">
-            <Button variant="primary" className="text-lg font-semibold px-20 py-2 shadow-2xl ">
+            <Button variant="primary" className="text-lg font-semibold px-20 py-2 shadow-2xl " onClick={handleWriteClick}>
               Write
             </Button>
           </div>
