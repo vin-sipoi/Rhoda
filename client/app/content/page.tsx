@@ -2,37 +2,66 @@
 
 import type React from "react"
 import Link from "next/link"
-
 import { Bell, List, LinkIcon, Quote, Italic, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useRef, useCallback, useEffect } from "react"
 
 const scrollbarStyles = `
-  .text-editor::-webkit-scrollbar {
-    width: 8px;
-  }
-  .text-editor::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .text-editor::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-  }
-  .text-editor::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
-`
+.text-editor::-webkit-scrollbar {width: 8px;}
+.text-editor::-webkit-scrollbar-track {background: transparent;}
+.text-editor::-webkit-scrollbar-thumb {background: rgba(255, 255, 255, 0.2);border-radius: 4px;}
+.text-editor::-webkit-scrollbar-thumb:hover {background: rgba(255, 255, 255, 0.3);}
+
+/* Styling for H2 within the editor */
+.text-editor h2 {
+  font-size: 2.25rem; /* Equivalent to Tailwind's text-4xl */
+  font-weight: 700; /* Equivalent to Tailwind's font-bold */
+  line-height: 1.2;
+  margin-top: 1.5em; /* Add some vertical spacing */
+  margin-bottom: 0.5em;
+  color: white; /* Ensure the heading text is white */
+}
+
+.text-editor a {
+  text-decoration: underline;
+}
+` // Removed TipTap placeholder styles as they are not applicable here.
 
 export default function RhodaEditor() {
   const [title, setTitle] = useState("Title")
-  const [content, setContent] = useState("")
+  const [content, setContent] = useState("") // Stores the HTML content
   const [wordCount, setWordCount] = useState(0)
   const [isFocused, setIsFocused] = useState(false)
   const [isEditorFocused, setIsEditorFocused] = useState(false)
   const [showPlaceholder, setShowPlaceholder] = useState(true)
   const [activeFormats, setActiveFormats] = useState<Set<string>>(new Set())
-  const contentRef = useRef<HTMLTextAreaElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Initialize contentEditable div's innerHTML once on mount
+  useEffect(() => {
+    if (contentRef.current) {
+      contentRef.current.innerHTML = content || "<p><br></p>" // Ensure a default paragraph
+      // Set initial placeholder state based on actual content
+      setShowPlaceholder(!contentRef.current.innerText.trim())
+    }
+  }, []) // Empty dependency array ensures this runs only once
+
+  // Ensure there's always a <p> tag when content is truly empty and manage placeholder
+  useEffect(() => {
+    if (contentRef.current) {
+      const currentText = contentRef.current.innerText.trim()
+      if (!currentText && !isEditorFocused) {
+        setShowPlaceholder(true)
+        // Ensure there's a paragraph tag for execCommand to work on
+        if (!contentRef.current.innerHTML.trim()) {
+          contentRef.current.innerHTML = "<p><br></p>"
+        }
+      } else if (currentText && showPlaceholder) {
+        setShowPlaceholder(false)
+      }
+    }
+  }, [content, isEditorFocused, showPlaceholder])
 
   const countWords = useCallback((text: string) => {
     if (!text || text.trim() === "") return 0
@@ -46,40 +75,43 @@ export default function RhodaEditor() {
 
   const checkActiveFormats = useCallback(() => {
     const formats = new Set<string>()
-
     try {
       if (document.queryCommandState("bold")) formats.add("bold")
       if (document.queryCommandState("italic")) formats.add("italic")
-      if (document.queryCommandValue("formatBlock") === "h2") formats.add("heading")
 
-      // Better list detection
-      if (document.queryCommandState("insertUnorderedList")) {
-        formats.add("list")
-      } else {
-        // Alternative check - see if cursor is inside a list item
-        const selection = window.getSelection()
-        if (selection && selection.rangeCount > 0) {
-          let node = selection.getRangeAt(0).commonAncestorContainer
-          while (node && node !== contentRef.current) {
-            if (node.nodeName === "LI" || node.nodeName === "UL") {
-              formats.add("list")
-              break
+      const selection = window.getSelection()
+      if (selection && selection.rangeCount > 0) {
+        let node = selection.getRangeAt(0).commonAncestorContainer
+        // Traverse up to find the block element or list item
+        while (node && node !== contentRef.current) {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const tagName = (node as HTMLElement).tagName.toLowerCase()
+            if (tagName === "h2") {
+              formats.add("heading")
             }
-            node = node.parentNode
+            if (tagName === "blockquote") {
+              formats.add("quote")
+            }
+            if (tagName === "li" || tagName === "ul") {
+              // Check for list item or its parent ul
+              formats.add("list")
+            }
           }
+          node = node.parentNode
         }
       }
     } catch (e) {
       // Ignore errors from queryCommand
     }
-
     setActiveFormats(formats)
   }, [])
 
-  const handleContentChange = (value: string) => {
-    setContent(value)
-    setWordCount(countWords(value))
-    setShowPlaceholder(!value.trim())
+  const handleInput = () => {
+    if (contentRef.current) {
+      const newContentHtml = contentRef.current.innerHTML
+      setContent(newContentHtml) // Update React state with current HTML
+      setWordCount(countWords(contentRef.current.innerText)) // Use innerText for word count
+    }
   }
 
   const handleSelectionChange = useCallback(() => {
@@ -89,8 +121,7 @@ export default function RhodaEditor() {
   const handleEditorFocus = () => {
     setIsFocused(true)
     setIsEditorFocused(true)
-    setShowPlaceholder(false)
-    // Focus the textarea
+    setShowPlaceholder(false) // Hide placeholder when focused
     if (contentRef.current) {
       contentRef.current.focus()
     }
@@ -99,263 +130,49 @@ export default function RhodaEditor() {
   const handleEditorBlur = () => {
     setIsFocused(false)
     setIsEditorFocused(false)
-    if (!content.trim()) {
-      setShowPlaceholder(true)
+    if (contentRef.current && !contentRef.current.innerText.trim()) {
+      setShowPlaceholder(true) // Show placeholder if content is empty after blur
     }
   }
 
   const applyFormat = (format: string) => {
     if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end)
-
-    let formattedText = ""
-    let newContent = ""
-    let cursorOffset = 0
-
-    if (selectedText.trim()) {
-      // Text is selected - apply formatting to selection
-      switch (format) {
-        case "bold":
-          if (selectedText.startsWith("**") && selectedText.endsWith("**") && selectedText.length > 4) {
-            // Remove bold formatting
-            formattedText = selectedText.slice(2, -2)
-            cursorOffset = formattedText.length
-          } else {
-            // Add bold formatting
-            formattedText = `**${selectedText}**`
-            cursorOffset = formattedText.length
-          }
-          break
-        case "italic":
-          if (
-            selectedText.startsWith("*") &&
-            selectedText.endsWith("*") &&
-            selectedText.length > 2 &&
-            !selectedText.startsWith("**")
-          ) {
-            // Remove italic formatting
-            formattedText = selectedText.slice(1, -1)
-            cursorOffset = formattedText.length
-          } else {
-            // Add italic formatting
-            formattedText = `*${selectedText}*`
-            cursorOffset = formattedText.length
-          }
-          break
-        default:
-          return
-      }
-
-      newContent = content.substring(0, start) + formattedText + content.substring(end)
-    } else {
-      // No text selected - insert formatting markers and place cursor between them
-      switch (format) {
-        case "bold":
-          formattedText = "****"
-          cursorOffset = 2 // Place cursor between the asterisks
-          break
-        case "italic":
-          formattedText = "**"
-          cursorOffset = 1 // Place cursor between the asterisks
-          break
-        default:
-          return
-      }
-
-      newContent = content.substring(0, start) + formattedText + content.substring(end)
-    }
-
-    setContent(newContent)
-    setWordCount(countWords(newContent))
-
-    // Set cursor position
-    setTimeout(() => {
-      if (selectedText.trim()) {
-        // If text was selected, place cursor at end of formatted text
-        textarea.selectionStart = textarea.selectionEnd = start + cursorOffset
-      } else {
-        // If no text was selected, place cursor between formatting markers
-        textarea.selectionStart = textarea.selectionEnd = start + cursorOffset
-      }
-      textarea.focus()
-    }, 0)
+    contentRef.current.focus()
+    document.execCommand(format, false, undefined)
+    handleInput() // Update state after execCommand
+    checkActiveFormats()
   }
 
   const applyHeading = () => {
     if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    // Get all selected lines
-    const beforeSelection = content.substring(0, start)
-    const afterSelection = content.substring(end)
-    const selectedText = content.substring(start, end)
-
-    // Find the start of the first selected line
-    const firstLineStart = beforeSelection.lastIndexOf("\n") + 1
-
-    // Find the end of the last selected line
-    const lastLineEndIndex = afterSelection.indexOf("\n")
-    const lastLineEnd = lastLineEndIndex === -1 ? content.length : end + lastLineEndIndex
-
-    // Get the full text that includes all affected lines
-    const fullText = content.substring(firstLineStart, lastLineEnd)
-    const lines = fullText.split("\n")
-
-    // Process each line
-    const processedLines = lines.map((line) => {
-      if (line.startsWith("## ")) {
-        // Remove heading
-        return line.substring(3)
-      } else if (line.trim()) {
-        // Add heading (only to non-empty lines)
-        return `## ${line}`
-      }
-      return line // Keep empty lines as is
-    })
-
-    const newText = processedLines.join("\n")
-    const newContent = content.substring(0, firstLineStart) + newText + content.substring(lastLineEnd)
-
-    setContent(newContent)
-    setWordCount(countWords(newContent))
-
-    // Maintain selection or cursor position
-    setTimeout(() => {
-      const lengthDiff = newText.length - fullText.length
-      const newStart = Math.max(firstLineStart, start + lengthDiff)
-      const newEnd = Math.max(firstLineStart, end + lengthDiff)
-
-      textarea.selectionStart = newStart
-      textarea.selectionEnd = selectedText ? newEnd : newStart
-      textarea.focus()
-    }, 0)
+    contentRef.current.focus()
+    if (activeFormats.has("heading")) {
+      document.execCommand("formatBlock", false, "p") // Toggle off heading
+    } else {
+      document.execCommand("formatBlock", false, "h2") // Apply heading
+    }
+    handleInput()
+    checkActiveFormats()
   }
 
   const toggleList = () => {
     if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    // Get all selected lines
-    const beforeSelection = content.substring(0, start)
-    const afterSelection = content.substring(end)
-
-    // Find the start of the first selected line
-    const firstLineStart = beforeSelection.lastIndexOf("\n") + 1
-
-    // Find the end of the last selected line
-    const lastLineEndIndex = afterSelection.indexOf("\n")
-    const lastLineEnd = lastLineEndIndex === -1 ? content.length : end + lastLineEndIndex
-
-    // Get the full text that includes all affected lines
-    const fullText = content.substring(firstLineStart, lastLineEnd)
-    const lines = fullText.split("\n")
-
-    // Check if any line has bullets to determine action
-    const hasBullets = lines.some((line) => line.match(/^[\s]*[•\-*]\s/))
-
-    // Process each line
-    const processedLines = lines.map((line) => {
-      const trimmedLine = line.trim()
-
-      if (!trimmedLine) return line // Keep empty lines as is
-
-      if (hasBullets) {
-        // Remove bullets
-        return line.replace(/^(\s*)[•\-*]\s/, "$1")
-      } else {
-        // Add bullets, preserving indentation
-        const leadingWhitespace = line.match(/^\s*/)?.[0] || ""
-        const restOfLine = line.substring(leadingWhitespace.length)
-        return `${leadingWhitespace}• ${restOfLine}`
-      }
-    })
-
-    const newText = processedLines.join("\n")
-    const newContent = content.substring(0, firstLineStart) + newText + content.substring(lastLineEnd)
-
-    setContent(newContent)
-    setWordCount(countWords(newContent))
-
-    // Maintain selection or cursor position
-    setTimeout(() => {
-      const lengthDiff = newText.length - fullText.length
-      const newStart = Math.max(firstLineStart, start + lengthDiff)
-      const newEnd = Math.max(firstLineStart, end + lengthDiff)
-
-      textarea.selectionStart = newStart
-      textarea.selectionEnd = end > start ? newEnd : newStart
-      textarea.focus()
-    }, 0)
+    contentRef.current.focus()
+    document.execCommand("insertUnorderedList", false, undefined) // This command toggles the list on/off
+    handleInput()
+    checkActiveFormats()
   }
 
   const applyQuote = () => {
     if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    // Get all selected lines
-    const beforeSelection = content.substring(0, start)
-    const afterSelection = content.substring(end)
-
-    // Find the start of the first selected line
-    const firstLineStart = beforeSelection.lastIndexOf("\n") + 1
-
-    // Find the end of the last selected line
-    const lastLineEndIndex = afterSelection.indexOf("\n")
-    const lastLineEnd = lastLineEndIndex === -1 ? content.length : end + lastLineEndIndex
-
-    // Get the full text that includes all affected lines
-    const fullText = content.substring(firstLineStart, lastLineEnd)
-    const lines = fullText.split("\n")
-
-    // Check if any line has quotes to determine action
-    const hasQuotes = lines.some((line) => line.match(/^[\s]*>\s/))
-
-    // Process each line
-    const processedLines = lines.map((line) => {
-      const trimmedLine = line.trim()
-
-      if (!trimmedLine) return line // Keep empty lines as is
-
-      if (hasQuotes) {
-        // Remove quotes
-        return line.replace(/^(\s*)>\s/, "$1")
-      } else {
-        // Add quotes, preserving indentation
-        const leadingWhitespace = line.match(/^\s*/)?.[0] || ""
-        const restOfLine = line.substring(leadingWhitespace.length)
-        return `${leadingWhitespace}> ${restOfLine}`
-      }
-    })
-
-    const newText = processedLines.join("\n")
-    const newContent = content.substring(0, firstLineStart) + newText + content.substring(lastLineEnd)
-
-    setContent(newContent)
-    setWordCount(countWords(newContent))
-
-    // Maintain selection or cursor position
-    setTimeout(() => {
-      const lengthDiff = newText.length - fullText.length
-      const newStart = Math.max(firstLineStart, start + lengthDiff)
-      const newEnd = Math.max(firstLineStart, end + lengthDiff)
-
-      textarea.selectionStart = newStart
-      textarea.selectionEnd = end > start ? newEnd : newStart
-      textarea.focus()
-    }, 0)
+    contentRef.current.focus()
+    if (activeFormats.has("quote")) {
+      document.execCommand("formatBlock", false, "p") // Toggle off quote
+    } else {
+      document.execCommand("formatBlock", false, "blockquote") // Apply quote
+    }
+    handleInput()
+    checkActiveFormats()
   }
 
   const handleImageUpload = () => {
@@ -367,24 +184,18 @@ export default function RhodaEditor() {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file && file.type.startsWith("image/")) {
-      // For textarea, we'll insert a placeholder text for the image
-      const imagePlaceholder = `[Image: ${file.name}]`
-
-      if (contentRef.current) {
-        const textarea = contentRef.current
-        const start = textarea.selectionStart
-        const end = textarea.selectionEnd
-        const newContent = content.substring(0, start) + imagePlaceholder + content.substring(end)
-
-        setContent(newContent)
-        setWordCount(countWords(newContent))
-
-        // Set cursor position after the inserted text
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + imagePlaceholder.length
-          textarea.focus()
-        }, 0)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        if (contentRef.current && e.target?.result) {
+          contentRef.current.focus()
+          const imageHtml = `<img src="${
+            e.target.result as string
+          }" style="max-width: 100%; height: auto; border-radius: 0.5rem; box-shadow: 0 0 10px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);" />`
+          document.execCommand("insertHTML", false, imageHtml)
+          handleInput()
+        }
       }
+      reader.readAsDataURL(file)
     }
     // Reset the input
     event.target.value = ""
@@ -392,47 +203,16 @@ export default function RhodaEditor() {
 
   const createLink = () => {
     if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-    const selectedText = content.substring(start, end)
-
-    if (selectedText.trim()) {
-      // Text is selected
-      const url = prompt("Enter URL:")
-      if (url) {
-        const linkText = `[${selectedText}](${url})`
-        const newContent = content.substring(0, start) + linkText + content.substring(end)
-
-        setContent(newContent)
-        setWordCount(countWords(newContent))
-
-        // Set cursor position after the link
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + linkText.length
-          textarea.focus()
-        }, 0)
+    contentRef.current.focus()
+    let url = prompt("Enter URL:")
+    if (url) {
+      if (!/^https?:\/\//i.test(url)) {
+        url = "http://" + url
       }
-    } else {
-      // No text selected - insert link template
-      const url = prompt("Enter URL:")
-      if (url) {
-        const linkText = prompt("Enter link text:") || "link text"
-        const fullLink = `[${linkText}](${url})`
-        const newContent = content.substring(0, start) + fullLink + content.substring(end)
-
-        setContent(newContent)
-        setWordCount(countWords(newContent))
-
-        // Select the link text for easy editing
-        setTimeout(() => {
-          textarea.selectionStart = start + 1
-          textarea.selectionEnd = start + 1 + linkText.length
-          textarea.focus()
-        }, 0)
-      }
+      document.execCommand("createLink", false, url)
+      handleInput()
     }
+    checkActiveFormats()
   }
 
   // Enhanced keyboard shortcuts
@@ -471,71 +251,91 @@ export default function RhodaEditor() {
     }
   }, [isEditorFocused, handleSelectionChange])
 
+  // Make links clickable
+  useEffect(() => {
+    const editor = contentRef.current
+    if (!editor) return
+
+    const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (target.tagName === "A") {
+        const href = target.getAttribute("href")
+        if (href) {
+          e.preventDefault()
+          window.open(href, "_blank", "noopener,noreferrer")
+        }
+      }
+    }
+
+    editor.addEventListener("click", handleClick)
+
+    return () => {
+      editor.removeEventListener("click", handleClick)
+    }
+  }, [])
+
   return (
     <div
-      className="min-h-screen relative overflow-hidden"
+      className="h-screen relative overflow-hidden"
       style={{
-        background: `
-          radial-gradient(ellipse 800px 600px at 50% 50%, #61b693 0%, transparent 70%),
-          radial-gradient(ellipse 700px 500px at 15% 85%, #2c304c 0%, #2c304c 30%, transparent 60%),
-          radial-gradient(ellipse 600px 500px at 85% 15%, #1f2020 0%, #1f2020 40%, transparent 70%),
-          radial-gradient(ellipse 600px 500px at 85% 85%, #1e1e1e 0%, #1e1e1e 40%, transparent 70%),
-          radial-gradient(ellipse 500px 400px at 10% 10%, #1e1e1e 0%, transparent 60%),
-          linear-gradient(135deg, #1e1e1e 0%, #2c304c 25%, #3c6351 50%, #61b693 75%, #1f2020 100%)
-        `,
+        background: `    radial-gradient(ellipse 800px 600px at 50% 50%, #61b693 0%, transparent 70%),
+    radial-gradient(ellipse 700px 500px at 15% 85%, #2c304c 0%, #2c304c 30%, transparent 60%),
+    radial-gradient(ellipse 600px 500px at 85% 15%, #1f2020 0%, #1f2020 40%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at 85% 85%, #1e1e1e 0%, #1e1e1e 40%, transparent 70%),
+    radial-gradient(ellipse 500px 400px at 10% 10%, #1e1e1e 0%, transparent 60%),
+    linear-gradient(135deg, #1e1e1e 0%, #2c304c 25%, #3c6351 50%, #61b693 75%, #1f2020 100%)
+  `,
       }}
     >
       {/* Background Grid Lines - Only in background areas */}
       <div
         className="absolute inset-0 opacity-5"
         style={{
-          backgroundImage: `
-            linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)
-          `,
+          backgroundImage: `      linear-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.4) 1px, transparent 1px)
+    `,
           backgroundSize: "60px 60px",
-          maskImage: `
-            radial-gradient(ellipse 800px 600px at 50% 50%, transparent 0%, transparent 40%, rgba(0,0,0,1) 70%),
-            radial-gradient(ellipse 600px 400px at 50% 50%, transparent 0%, rgba(0,0,0,1) 100%)
-          `,
-          WebkitMaskImage: `
-            radial-gradient(ellipse 800px 600px at 50% 50%, transparent 0%, transparent 40%, rgba(0,0,0,1) 70%),
-            radial-gradient(ellipse 600px 400px at 50% 50%, transparent 0%, rgba(0,0,0,1) 100%)
-          `,
+          maskImage: `      radial-gradient(ellipse 800px 600px at 50% 50%, transparent 0%, transparent 40%, rgba(0,0,0,1) 70%),
+      radial-gradient(ellipse 600px 400px at 50% 50%, transparent 0%, rgba(0,0,0,1) 100%)
+    `,
+          WebkitMaskImage: `      radial-gradient(ellipse 800px 600px at 50% 50%, transparent 0%, transparent 40%, rgba(0,0,0,1) 70%),
+      radial-gradient(ellipse 600px 400px at 50% 50%, transparent 0%, rgba(0,0,0,1) 100%)
+    `,
         }}
       />
-
       {/* Subtle Texture Overlay */}
       <div
         className="absolute inset-0 opacity-20"
         style={{
-          backgroundImage: `
-            radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
-            radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
-            repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 1px,
-              rgba(255, 255, 255, 0.015) 1px,
-              rgba(255, 255, 255, 0.015) 2px
-            )
-          `,
+          backgroundImage: `      radial-gradient(circle at 30% 70%, rgba(255, 255, 255, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+      repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 1px,
+        rgba(255, 255, 255, 0.015) 1px,
+        rgba(255, 255, 255, 0.015) 2px
+      )
+    `,
           filter: "blur(0.5px)",
           mixBlendMode: "overlay",
         }}
       />
-
       {/* Top Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/20 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center justify-between px-8 py-4">
           {/* Logo */}
-          <Link href="/" className="text-white text-xl font-semibold tracking-tight">Rhoda</Link>
-
+          <Link href="/" className="text-white text-xl font-semibold tracking-tight">
+            Rhoda
+          </Link>
           {/* Right Side - Navigation Links + Actions */}
           <div className="flex items-center space-x-8">
             {/* Navigation Links */}
             <div className="flex items-center space-x-8">
-              <Link href="/dashboard" className="text-white/80 hover:text-white cursor-pointer text-sm font-medium transition-colors">
+              <Link
+                href="/dashboard"
+                className="text-white/80 hover:text-white cursor-pointer text-sm font-medium transition-colors"
+              >
                 Dashboard
               </Link>
               <span className="text-white cursor-pointer text-sm font-medium">Content</span>
@@ -543,7 +343,6 @@ export default function RhodaEditor() {
                 About Us
               </span>
             </div>
-
             {/* Action Items */}
             <div className="flex items-center space-x-4">
               <Button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
@@ -557,10 +356,8 @@ export default function RhodaEditor() {
           </div>
         </div>
       </nav>
-
       {/* Hidden file input for image upload */}
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-
       {/* Main Content Card */}
       <div className="relative z-10 flex flex-col items-center justify-center px-4 pt-24 pb-8 h-full">
         <div
@@ -590,7 +387,6 @@ export default function RhodaEditor() {
                 style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
                 placeholder="Enter your title..."
               />
-
               {/* Tell your story placeholder */}
               {showPlaceholder && (
                 <div className="text-white/70 text-lg font-light cursor-text mb-4" onClick={handleEditorFocus}>
@@ -598,47 +394,37 @@ export default function RhodaEditor() {
                 </div>
               )}
             </div>
-
             {/* Content Area */}
             <div className="flex-1 flex flex-col relative">
-              {/* Main textarea with scrollbar - aligned with title */}
+              {/* Main contentEditable div with scrollbar - aligned with title */}
               <div className="mb-6 flex-1 overflow-hidden">
                 <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
-                <textarea
+                <div
                   ref={contentRef}
-                  value={content}
-                  onChange={(e) => {
-                    setContent(e.target.value)
-                    setWordCount(countWords(e.target.value))
-                    setShowPlaceholder(!e.target.value.trim())
-                  }}
+                  contentEditable="true"
+                  suppressContentEditableWarning={true} // Suppress React warning for contentEditable
+                  onInput={handleInput}
                   onFocus={handleEditorFocus}
                   onBlur={handleEditorBlur}
                   onMouseUp={handleSelectionChange}
                   onKeyUp={handleSelectionChange}
-                  className="text-editor w-full h-full text-white/90 text-lg font-light leading-relaxed bg-transparent border-none outline-none transition-colors rounded-lg resize-none overflow-y-auto"
+                  className="text-editor w-full h-full text-white text-lg font-light leading-relaxed bg-transparent border-none outline-none transition-colors rounded-lg resize-none p-6 overflow-y-auto"
                   style={{
                     caretColor: "white",
-                    minHeight: "300px",
                     scrollbarWidth: "thin",
                     scrollbarColor: "rgba(255, 255, 255, 0.3) transparent",
-                    padding: "0",
                     margin: "0",
                     fontFamily: "system-ui, -apple-system, sans-serif",
                   }}
-                  placeholder=""
+                  // No dangerouslySetInnerHTML here after initial render
                 />
               </div>
-
-              {/* Center placeholder text when no content and not focused */}
-              {!content && !isEditorFocused && !showPlaceholder && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <p className="text-white/60 text-lg font-light">
-                    Select text to change formatting, add headers, or create links.
-                  </p>
-                </div>
-              )}
-
+              {/* Instruction header - always visible */}
+              {
+                <p className="text-white text-lg font-medium mb-4 text-center">
+                  Select text to change formatting, add headers, or create links.
+                </p>
+              }
               {/* Floating Toolbar */}
               <div className="bg-white/95 backdrop-blur-sm rounded-xl p-4 flex items-center justify-between shadow-xl border border-white/30 mb-4">
                 <div className="flex items-center space-x-4">
@@ -704,15 +490,13 @@ export default function RhodaEditor() {
                   {wordCount} {wordCount === 1 ? "word" : "words"}
                 </div>
               </div>
-
               {/* Bottom Text */}
               <div className="text-center mb-4">
-                <p className="text-white/60 text-sm font-light">Writing on Rhoda</p>
+                <p className="text-white text-sm font-medium">Writing on Rhoda</p>
               </div>
             </div>
           </div>
         </div>
-
         {/* Publish Button */}
         <div className="mt-4">
           <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl text-lg font-medium shadow-xl hover:shadow-blue-500/25 transition-all duration-200">
