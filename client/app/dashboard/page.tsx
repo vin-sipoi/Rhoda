@@ -109,7 +109,7 @@ const RhodaDashboard: React.FC = () => {
           
           {/* CTA Button */}
           <div className="pt-4">
-            <Button variant="primary" className="text-lg font-semibold px-20 py-2 shadow-2xl ">
+            <Button variant="primary" className="text-lg font-bold px-20 py-2 shadow-2xl ">
               Write
             </Button>
           </div>
