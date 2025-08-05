@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu } from 'lucide-react';
+import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu, TrendingUp, Bookmark, Check, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -128,14 +128,12 @@ const RhodaDashboard: React.FC = () => {
       {/* Sidebar */}
       <aside className={`
         fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-50
-        w-64 h-screen border-r border-white/10 flex flex-col bg-[#1e1e1e]
+        w-64 h-screen border-r border-white/10 flex flex-col bg-[#181818]
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Logo and Close Button */}
         <div className="p-6 flex items-center justify-between">
-          <Link href="/" className="text-white text-2xl font-bold font-hahmlet">
-            Rhoda
-          </Link>
+          <span className="text-white text-2xl font-bold font-hahmlet">Rhoda</span>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden text-white/80 hover:text-white transition-colors p-1"
@@ -145,129 +143,63 @@ const RhodaDashboard: React.FC = () => {
         </div>
 
         {/* Navigation Items */}
-        <div className="flex-1 px-4 py-6">
-          <div className="flex flex-col space-y-4">
-            {tabs.map((item, index) => (
-              <button
-                key={index}
-                className={`px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${
-                  activeTab === item.value ? 'bg-gray-200 text-black' : 'text-white/80 hover:text-white hover:bg-white/10'
-                }`}
-                onClick={() => {
-                  setActiveTab(item.value);
-                  setSidebarOpen(false); // Close sidebar on mobile after selection
-                }}
-              >
-                <div className="flex flex-row items-center gap-2">
-                  {item.icon}
-                  <span className="text-sm">{item.label}</span>
-                </div>
-              </button>
-            ))}
+        <div className="flex-1 px-4 py-6 flex flex-col justify-between">
+          <div className="flex flex-col gap-1">
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base bg-[#232323] text-white" disabled>
+              <Users size={20} />
+              <span>My Courses</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
+              <TrendingUp size={20} />
+              <span>Not Started</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
+              <TrendingUp size={20} />
+              <span>In Progress</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
+              <Bookmark size={20} />
+              <span>Bookmarks</span>
+            </button>
+            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
+              <Check size={20} />
+              <span>Completed</span>
+            </button>
           </div>
+          {/* Logout button removed; should only appear after authentication */}
         </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Navigation */}
-        <nav className="font-hahmlet flex items-center justify-between px-4 lg:px-8 py-6">
-          <div className="flex items-center">
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden text-white/80 hover:text-white transition-colors mr-4"
-            >
-              <Menu size={24} />
-            </button>
-            {/* Mobile Logo */}
-            <Link href="/" className="lg:hidden text-white text-xl font-bold font-hahmlet">
-              Rhoda
-            </Link>
-          </div>
-          
-          <div className="font-space-grotesk flex items-center space-x-2 lg:space-x-8">
-            <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
-              <NavLink>Dashboard</NavLink>
-              <NavLink>Content</NavLink>
-              <NavLink>About Us</NavLink>
-            </div>
-            <div className="flex items-center space-x-2 lg:space-x-4">
-              <Button 
-                variant="primary" 
-                className="text-xs lg:text-sm px-3 lg:px-6 py-1 lg:py-2" 
-                onClick={handleWriteClick}
-              >
-                <span className="hidden sm:inline">Create Content</span>
-                <span className="sm:hidden">Create</span>
-              </Button>
-              <button className="text-white/80 hover:text-white transition-colors">
-                <Bell size={20} className="lg:hidden" />
-                <Bell size={28} className="hidden lg:block" />
-              </button>
-              <div className="relative">
-                <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full border-gray-200 flex items-center justify-center">
-                  <User size={20} className="lg:hidden text-white" />
-                  <User size={28} className="hidden lg:block text-white" />
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        {/* Welcome Section and Search Bar */}
-        <div className="px-4 lg:px-7 py-3">
-          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-            {/* Welcome Section */}
-            <div className="flex flex-col">
-              <h1
-                className="text-[#F3F3F3]"
-                style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontWeight: 400,
-                  fontStyle: 'normal',
-                  fontSize: 'clamp(24px, 5vw, 35px)',
-                  lineHeight: '1.2',
-                  letterSpacing: '-2%',
-                  margin: 0,
-                }}
-              >
-                Welcome{' '}
-                <span
-                  style={{
-                    fontWeight: 700,
-                    fontStyle: 'bold',
-                  }}
-                >
-                  {userName}
-                </span>
-              </h1>
-              <div
-                className="text-[#F3F3F3] mt-2"
-                style={{
-                  fontFamily: 'Space Grotesk, sans-serif',
-                  fontWeight: 400,
-                  fontStyle: 'normal',
-                  fontSize: 'clamp(14px, 3vw, 18px)',
-                }}
-              >
-                Discover Seamless WhatsApp Content Sharing and Management
-              </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative w-full lg:w-80 xl:w-96">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={18} />
+        {/* Top Bar (matches image: search bar, bell, avatar) */}
+        <div className="flex items-center justify-between px-6 py-6 bg-[#232323] border-b border-[#232323]">
+          {/* Search Bar Centered */}
+          <div className="flex-1 flex justify-center">
+            <div className="relative w-full max-w-xl">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
               <input
                 type="text"
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 lg:py-3 bg-[#3a3a3a] border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               />
             </div>
           </div>
+          {/* Bell and Avatar */}
+          <div className="flex items-center gap-4 ml-6">
+            <button className="text-white/80 hover:text-white transition-colors">
+              <Bell size={24} />
+            </button>
+            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 flex items-center justify-center bg-[#353535]">
+              {/* Example avatar, replace src as needed */}
+              <img src="/images/author1.jpg" alt="avatar" className="w-full h-full object-cover" />
+            </div>
+          </div>
         </div>
+
+        {/* Center content now only shows the course cards below the top bar */}
 
         {/* Main Content Area */}
         <main className="font-space-grotesk flex flex-col px-4 lg:px-8 py-6 flex-1 overflow-auto">
