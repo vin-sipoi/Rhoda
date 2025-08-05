@@ -31,7 +31,7 @@ export default function Home() {
       {/* Header */}
     
       <header className="flex justify-between items-center px-6 py-4 relative z-10 flex-shrink-0">
-        <Link href="/home-page">
+        <Link href="/">
           <span className="font-bold text-2xl">Rhoda</span>
         </Link>
 
