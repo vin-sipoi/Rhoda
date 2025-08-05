@@ -54,7 +54,7 @@ export default function Home() {
           Simplify content creation, management, and <br /> performance tracking  through WhatsApp and <br /> web interfaces.
           </p>
           
-          <Link href="">
+          <Link href="/dashboard">
             <button className="bg-orange-500 hover:bg-orange-600 text-[#FFFFFF] font-bold px-4 py-2 rounded-lg transition mb-4 text-base md:text-base cursor-pointer">
               Share your first content
             </button>

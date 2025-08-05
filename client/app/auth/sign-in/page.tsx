@@ -113,7 +113,7 @@ export default function Component() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Gradient Background */}
-      <div
+    {/*  <div
         className="absolute inset-0"
         style={{
           background: `
@@ -125,7 +125,7 @@ export default function Component() {
       linear-gradient(135deg, #1e1e1e 0%, #2c304c 25%, #3c6351 50%, #61b693 75%, #1f2020 100%)
     `,
         }}
-      />
+      />*/}
 
       {/* Subtle Texture Overlay */}
       <div
@@ -147,40 +147,43 @@ export default function Component() {
         }}
       />
 
-      {/* Rhoda Logo */}
-      <div className="absolute top-8 left-8 z-10">
-        <h1 className="text-white text-3xl font-bold">Rhoda</h1>
-      </div>
+      <header className="flex justify-between items-center px-6 py-4 relative z-10 flex-shrink-0">
+        <Link href="/">
+          <span className="font-bold text-2xl">Rhoda</span>
+        </Link>
+      </header>
 
       {/* Main Content */}
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
         {step === "welcome" && (
           <div className="w-full max-w-md">
             <div
-              className="rounded-3xl p-8 backdrop-blur-sm border border-white/20"
+              className="backdrop-blur-xl rounded-[2rem] p-8 shadow-2xl"
               style={{
-                background: "rgba(97, 182, 147, 0.3)",
+                backgroundColor: "hsl(0 0% 100% / 0.15)",
+                border: "1px solid hsl(0 0% 100% / 0.2)",
+                boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.25)",
               }}
             >
               <div className="space-y-6">
-                <div className="text-center space-y-2">
+                <div className="text-left space-y-2">
                   <h2 className="text-white text-2xl font-bold">Welcome to Rhoda</h2>
                   <p className="text-white/80 text-sm">Please sign in or sign up below.</p>
                 </div>
 
-                {/* Tab Switcher with Dynamic Ordering */}
+                {/* Tab Switcher with Dynamic Ordering and Text */}
                 <div className="flex">
                   {method === "email" ? (
                     <>
                       <button
                         onClick={() => setMethod("email")}
-                        className="flex-1 text-sm font-medium pb-2 text-white border-b-2 border-white"
+                        className="flex-1 text-sm font-medium pb-2 text-white border-b-2 border-white text-left"
                       >
                         E-Mail
                       </button>
                       <button
                         onClick={() => setMethod("phone")}
-                        className="flex-1 text-sm font-medium pb-2 text-white/60"
+                        className="flex-1 text-sm font-medium pb-2 text-white/60 text-right"
                       >
                         Use Phone Number
                       </button>
@@ -189,15 +192,15 @@ export default function Component() {
                     <>
                       <button
                         onClick={() => setMethod("phone")}
-                        className="flex-1 text-sm font-medium pb-2 text-white border-b-2 border-white"
+                        className="flex-1 text-sm font-medium pb-2 text-white border-b-2 border-white text-left"
                       >
-                        Use Phone Number
+                        Phone
                       </button>
                       <button
                         onClick={() => setMethod("email")}
-                        className="flex-1 text-sm font-medium pb-2 text-white/60"
+                        className="flex-1 text-sm font-medium pb-2 text-white/60 text-right"
                       >
-                        E-Mail
+                        Use E-Mail
                       </button>
                     </>
                   )}
@@ -209,22 +212,28 @@ export default function Component() {
                     type={method === "email" ? "email" : "tel"}
                     value={method === "email" ? email : phoneNumber}
                     onChange={(e) => (method === "email" ? setEmail(e.target.value) : setPhoneNumber(e.target.value))}
-                    className="bg-white/20 border-white/30 text-white placeholder:text-white/60 rounded-xl h-12"
+                    className="h-12 rounded-2xl border-0 text-gray-700 placeholder:text-gray-500 font-medium"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.9)",
+                    }}
                     placeholder={method === "email" ? "you@email.com" : "+254 7XX XXX XXX"}
                   />
 
                   <Button
                     onClick={handleContinue}
                     disabled={!isContinueEnabled()}
-                    className="w-full h-12 rounded-xl text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: "#7c3aed" }}
+                    className="w-full h-12 rounded-2xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: "#7C3AED",
+                      boxShadow: "0 4px 14px 0 rgba(124, 58, 237, 0.4)",
+                    }}
                   >
                     Continue with {method === "email" ? "E-Mail" : "Phone Number"}
                   </Button>
                 </div>
 
                 {/* Divider */}
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 py-2">
                   <div className="flex-1 h-px bg-white/30"></div>
                   <span className="text-white/80 text-sm font-medium">Or</span>
                   <div className="flex-1 h-px bg-white/30"></div>
@@ -232,11 +241,11 @@ export default function Component() {
 
                 {/* Google Sign In */}
                 <Button
-                  
-                  className="w-full h-12 rounded-xl bg-transparent border-white/30 text-white hover:bg-white/10"
+                  variant="outline"
+                  className="w-full h-12 rounded-2xl bg-transparent border-white/30 text-white hover:bg-white/10 font-medium"
                 >
                   <div className="flex items-center space-x-3">
-                    <svg width="24" height="24" viewBox="0 0 24 24" className="flex-shrink-0">
+                    <svg width="20" height="20" viewBox="0 0 24 24" className="flex-shrink-0">
                       <path
                         fill="#4285F4"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -265,9 +274,11 @@ export default function Component() {
         {(step === "verify-email" || step === "verify-phone") && (
           <div className="w-full max-w-md">
             <div
-              className="rounded-3xl p-8 backdrop-blur-sm border border-white/20"
+              className="backdrop-blur-xl rounded-[2rem] p-8 shadow-2xl"
               style={{
-                background: "rgba(97, 182, 147, 0.3)",
+                backgroundColor: "hsl(0 0% 100% / 0.15)",
+                border: "1px solid hsl(0 0% 100% / 0.2)",
+                boxShadow: "0 25px 50px -12px rgb(0 0 0 / 0.25)",
               }}
             >
               <div className="space-y-6">
@@ -302,6 +313,10 @@ export default function Component() {
                         value={digit}
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         className="w-12 h-12 text-center bg-transparent border-2 border-white/40 text-white text-lg font-medium rounded-xl focus:border-white"
+                        style={{
+                          backgroundColor: "transparent", // Changed to transparent
+                          border: "2px solid rgba(255, 255, 255, 0.8)", // Adjusted border for better visibility
+                        }}
                       />
                     ))}
                   </div>
@@ -310,7 +325,7 @@ export default function Component() {
                   <div className="flex space-x-4 pt-4">
                     <Button
                       onClick={handlePasteCode}
-                     
+                      variant="outline"
                       className="flex-1 h-12 rounded-xl bg-white/20 border-white/30 text-white hover:bg-white/30"
                     >
                       Paste Code
@@ -318,7 +333,7 @@ export default function Component() {
                     <Button
                       onClick={handleResendCode}
                       disabled={resendTimer > 0}
-                     
+                      variant="ghost"
                       className="flex-1 h-12 rounded-xl text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {resendTimer > 0 ? `Resend (${formatTime(resendTimer)})` : "Resend Code"}
