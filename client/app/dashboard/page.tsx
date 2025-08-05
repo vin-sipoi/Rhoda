@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send } from 'lucide-react';
+import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -46,9 +46,9 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
-
 const RhodaDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
   const userName = 'John';
@@ -103,11 +103,11 @@ const RhodaDashboard: React.FC = () => {
   };
 
   const tabs = [
-    { label: 'Courses', value: 'Courses',icon:<BookOpen /> },
-    { label: 'My Content', value: 'My Content',icon:<FileText /> },
-    { label: 'Drafts', value: 'Drafts',icon:<Edit /> },
-    { label: 'Published', value: 'Published',icon:<Send /> },
-    { label: 'Subscriptions', value: 'Subscriptions',icon:<Download/> } 
+    { label: 'Courses', value: 'Courses', icon: <BookOpen size={18} /> },
+    { label: 'My Content', value: 'My Content', icon: <FileText size={18} /> },
+    { label: 'Drafts', value: 'Drafts', icon: <Edit size={18} /> },
+    { label: 'Published', value: 'Published', icon: <Send size={18} /> },
+    { label: 'Subscriptions', value: 'Subscriptions', icon: <Download size={18} /> } 
   ];
 
   const filteredContent = contentData[activeTab]?.filter(item =>
@@ -116,30 +116,51 @@ const RhodaDashboard: React.FC = () => {
   ) || [];
 
   return (
-    <div className="min-h-screen flex bg-[#1e1e1e]">
+    <div className="min-h-screen flex bg-[#1e1e1e] relative">
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/10 flex flex-col">
-        {/* Logo */}
-        <div className="p-6 ">
+      <aside className={`
+        fixed lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-50
+        w-64 h-screen border-r border-white/10 flex flex-col bg-[#1e1e1e]
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        {/* Logo and Close Button */}
+        <div className="p-6 flex items-center justify-between">
           <Link href="/" className="text-white text-2xl font-bold font-hahmlet">
             Rhoda
           </Link>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden text-white/80 hover:text-white transition-colors p-1"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        {/* Top Section */}
+        {/* Navigation Items */}
         <div className="flex-1 px-4 py-6">
-          <div className="flex flex-col space-y-10">
+          <div className="flex flex-col space-y-4">
             {tabs.map((item, index) => (
               <button
                 key={index}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
+                className={`px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${
                   activeTab === item.value ? 'bg-gray-200 text-black' : 'text-white/80 hover:text-white hover:bg-white/10'
                 }`}
-                onClick={() => setActiveTab(item.value)}
+                onClick={() => {
+                  setActiveTab(item.value);
+                  setSidebarOpen(false); // Close sidebar on mobile after selection
+                }}
               >
-                <div className="flex flex-row gap-2">
+                <div className="flex flex-row items-center gap-2">
                   {item.icon}
-                  {item.label}
+                  <span className="text-sm">{item.label}</span>
                 </div>
               </button>
             ))}
@@ -148,34 +169,56 @@ const RhodaDashboard: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Navigation */}
-        <nav className="font-hahmlet flex items-center justify-between px-8 py-6">
-          <div className="flex-1" />
-          <div className="font-space-grotesk flex items-center space-x-8">
-            <NavLink>Dashboard</NavLink>
-            <NavLink>Content</NavLink>
-            <NavLink>About Us</NavLink>
-            <div className="flex items-center space-x-4 ml-5">
-              <Button variant="primary" className="text-sm" onClick={handleWriteClick}>
-                Create Content
+        <nav className="font-hahmlet flex items-center justify-between px-4 lg:px-8 py-6">
+          <div className="flex items-center">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden text-white/80 hover:text-white transition-colors mr-4"
+            >
+              <Menu size={24} />
+            </button>
+            {/* Mobile Logo */}
+            <Link href="/" className="lg:hidden text-white text-xl font-bold font-hahmlet">
+              Rhoda
+            </Link>
+          </div>
+          
+          <div className="font-space-grotesk flex items-center space-x-2 lg:space-x-8">
+            <div className="hidden md:flex items-center space-x-4 lg:space-x-8">
+              <NavLink>Dashboard</NavLink>
+              <NavLink>Content</NavLink>
+              <NavLink>About Us</NavLink>
+            </div>
+            <div className="flex items-center space-x-2 lg:space-x-4">
+              <Button 
+                variant="primary" 
+                className="text-xs lg:text-sm px-3 lg:px-6 py-1 lg:py-2" 
+                onClick={handleWriteClick}
+              >
+                <span className="hidden sm:inline">Create Content</span>
+                <span className="sm:hidden">Create</span>
               </Button>
               <button className="text-white/80 hover:text-white transition-colors">
-                <Bell size={28} />
+                <Bell size={20} className="lg:hidden" />
+                <Bell size={28} className="hidden lg:block" />
               </button>
               <div className="relative">
-                <div className="w-8 h-8 rounded-full border-gray-200 flex items-center justify-center">
-                  <User size={28} className="text-white" />
+                <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-full border-gray-200 flex items-center justify-center">
+                  <User size={20} className="lg:hidden text-white" />
+                  <User size={28} className="hidden lg:block text-white" />
                 </div>
               </div>
             </div>
           </div>
         </nav>
 
-        {/* Search Bar */}
-        <div className="flex justify-between px-7 py-3">
-          {/* Welcome Section */}
-          <div className="flex items-center justify-between mb-8">
+        {/* Welcome Section and Search Bar */}
+        <div className="px-4 lg:px-7 py-3">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
+            {/* Welcome Section */}
             <div className="flex flex-col">
               <h1
                 className="text-[#F3F3F3]"
@@ -183,9 +226,9 @@ const RhodaDashboard: React.FC = () => {
                   fontFamily: 'Space Grotesk, sans-serif',
                   fontWeight: 400,
                   fontStyle: 'normal',
-                  fontSize: '35px',
-                  lineHeight: '72px',
-                  letterSpacing: '-4%',
+                  fontSize: 'clamp(24px, 5vw, 35px)',
+                  lineHeight: '1.2',
+                  letterSpacing: '-2%',
                   margin: 0,
                 }}
               >
@@ -200,71 +243,78 @@ const RhodaDashboard: React.FC = () => {
                 </span>
               </h1>
               <div
-                className="text-[#F3F3F3]"
+                className="text-[#F3F3F3] mt-2"
                 style={{
                   fontFamily: 'Space Grotesk, sans-serif',
                   fontWeight: 400,
                   fontStyle: 'normal',
-                  fontSize: '18px',
-                  marginTop: '-10px',
+                  fontSize: 'clamp(14px, 3vw, 18px)',
                 }}
               >
                 Discover Seamless WhatsApp Content Sharing and Management
               </div>
             </div>
-          </div>
 
-          <div className="absolute right-7 top-30 z-10 max-w-2xl">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-[#3a3a3a] border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
+            {/* Search Bar */}
+            <div className="relative w-full lg:w-80 xl:w-96">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={18} />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 lg:py-3 bg-[#3a3a3a] border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              />
+            </div>
           </div>
         </div>
 
         {/* Main Content Area */}
-        <main className="font-space-grotesk flex flex-col px-8 py-6 flex-1 overflow-auto">
-
+        <main className="font-space-grotesk flex flex-col px-4 lg:px-8 py-6 flex-1 overflow-auto">
           {/* Content Cards */}
-          <div className="flex flex-col space-y-6 max-w-4xl mx-auto w-full">
+          <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
             {filteredContent.length > 0 ? (
               filteredContent.map((item, idx) => (
                 <Link
                   key={idx}
                   href={item.id ? `/dashboard/course/${item.id}` : '#'}
-                  className={`flex items-center justify-between rounded-2xl px-6 py-5 ${item.color} shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${item.color} shadow-lg hover:shadow-xl transition-shadow duration-200`}
                 >
-                  <div className="flex items-center space-x-4">
-                    <img src={item.avatar} alt="avatar" className="w-12 h-12 rounded-full mr-4 border-2 border-white/40 object-cover" />
-                    <div className="max-w-2xl">
-                      <div className="font-bold text-lg text-gray-900 mb-1">{item.title}</div>
-                      <div className="text-gray-700 text-sm mb-2">{item.subtitle}</div>
+                  <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
+                    <img 
+                      src={item.avatar} 
+                      alt="avatar" 
+                      className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0" 
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                        {item.title}
+                      </div>
+                      <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
+                        {item.subtitle}
+                      </div>
                       {item.readTime && (
                         <div className="text-gray-600 text-xs">{item.readTime}</div>
                       )}
                     </div>
                   </div>
                   {item.progress !== undefined && (
-                    <div className="flex items-center">
-                      <div className="relative w-14 h-14 flex items-center justify-center">
-                        <svg width="56" height="56" viewBox="0 0 56 56" className="absolute top-0 left-0">
-                          <circle cx="28" cy="28" r="25" stroke="#e5e5e5" strokeWidth="6" fill="none" />
+                    <div className="flex items-center justify-center sm:justify-end">
+                      <div className="relative w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center">
+                        <svg width="48" height="48" viewBox="0 0 48 48" className="absolute top-0 left-0 lg:w-14 lg:h-14">
+                          <circle cx="24" cy="24" r="20" stroke="#e5e5e5" strokeWidth="4" fill="none" />
                           <circle 
-                            cx="28" 
-                            cy="28" 
-                            r="25" 
+                            cx="24" 
+                            cy="24" 
+                            r="20" 
                             stroke="#61b693" 
-                            strokeWidth="6" 
+                            strokeWidth="4" 
                             fill="none" 
-                            strokeDasharray="157" 
-                            strokeDashoffset={157 - (157 * item.progress / 100)} 
+                            strokeDasharray="125.6" 
+                            strokeDashoffset={125.6 - (125.6 * item.progress / 100)} 
                           />
                         </svg>
-                        <span className="font-bold text-lg text-gray-900 z-10">{item.progress}%</span>
+                        <span className="font-bold text-sm lg:text-lg text-gray-900 z-10">{item.progress}%</span>
                       </div>
                     </div>
                   )}
