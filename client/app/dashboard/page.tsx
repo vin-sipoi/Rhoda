@@ -70,9 +70,7 @@ const RhodaDashboard: React.FC = () => {
         readTime: '5 min read',
         progress: 37
       },
-    ],
-    Published: [
-      {
+       {
         avatar: '/public/avatar1.png',
         title: 'I Tried These Creative Challenges—Heres What They Taught Me',
         subtitle: 'From trending TikToks to 30-day content sprints, I share what worked, what flopped, and what surprised me.',
@@ -96,6 +94,9 @@ const RhodaDashboard: React.FC = () => {
         readTime: '4 min read',
         progress: 100
       },
+    ],
+    Published: [
+     
     ],
     'My Content': [],
     Drafts: [],
@@ -199,30 +200,22 @@ const RhodaDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Center content now only shows the course cards below the top bar */}
-
-        {/* Main Content Area */}
-        <main className="font-space-grotesk flex flex-col px-4 lg:px-8 py-6 flex-1 overflow-auto">
-          {/* Content Cards */}
-          <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
-            {filteredContent.length > 0 ? (
-              filteredContent.map((item, idx) => (
+        {/* Main Content Area - Fixed Grid Layout */}
+        <main className="p-6">
+          {filteredContent.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {filteredContent.map((item, idx) => (
                 <Link
                   key={idx}
                   href={item.id ? `/dashboard/course/${item.id}` : '#'}
-                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${item.color} shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                  className={`flex flex-col rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${item.color} shadow-lg hover:shadow-xl transition-shadow duration-200`}
                 >
-                  <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
-                    <img 
-                      src={item.avatar} 
-                      alt="avatar" 
-                      className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0" 
-                    />
+                  <div className="flex items-start space-x-4 mb-4">
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
                         {item.title}
                       </div>
-                      <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
+                      <div className="text-gray-700 text-sm mb-2 line-clamp-2">
                         {item.subtitle}
                       </div>
                       {item.readTime && (
@@ -230,34 +223,14 @@ const RhodaDashboard: React.FC = () => {
                       )}
                     </div>
                   </div>
-                  {item.progress !== undefined && (
-                    <div className="flex items-center justify-center sm:justify-end">
-                      <div className="relative w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center">
-                        <svg width="48" height="48" viewBox="0 0 48 48" className="absolute top-0 left-0 lg:w-14 lg:h-14">
-                          <circle cx="24" cy="24" r="20" stroke="#e5e5e5" strokeWidth="4" fill="none" />
-                          <circle 
-                            cx="24" 
-                            cy="24" 
-                            r="20" 
-                            stroke="#61b693" 
-                            strokeWidth="4" 
-                            fill="none" 
-                            strokeDasharray="125.6" 
-                            strokeDashoffset={125.6 - (125.6 * item.progress / 100)} 
-                          />
-                        </svg>
-                        <span className="font-bold text-sm lg:text-lg text-gray-900 z-10">{item.progress}%</span>
-                      </div>
-                    </div>
-                  )}
                 </Link>
-              ))
-            ) : (
-              <div className="text-center text-white/80 py-10">
-                {searchQuery ? 'No content matches your search.' : 'No content available.'}
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-white/80 py-10">
+              {searchQuery ? 'No content matches your search.' : 'No content available.'}
+            </div>
+          )}
         </main>
       </div>
     </div>
