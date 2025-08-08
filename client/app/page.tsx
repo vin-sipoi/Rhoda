@@ -3,12 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search } from 'lucide-react';
 import Link from "next/link"; 
+import { FaWhatsapp } from 'react-icons/fa';
+import { FaInstagram, FaTiktok, FaXTwitter } from 'react-icons/fa6';
 
 // React Icons components (you'll need to install react-icons)
-const FaInstagram = () => <span>IG</span>; // Replace with actual FaInstagram
-const FaTiktok = () => <span>TT</span>; // Replace with actual FaTiktok  
-const FaXTwitter = () => <span>X</span>; // Replace with actual FaXTwitter
-const FaWhatsapp = () => <span>WA</span>; // Replace with actual FaWhatsapp
 
 interface Category {
   category: string;
@@ -90,10 +88,12 @@ export default function CombinedPage() {
         <Link href="/">
           <span className="font-bold text-2xl">Rhoda</span>
         </Link>
-
-        <button className="cursor-pointer border border-gray-200 hover:bg-gray-600 hover:text-white rounded-lg py-2 px-6 text-base font-medium transform transition hover:-translate-y-1 delay-150 duration-300 ease-in-out">
-          Sign In
-        </button>
+        <Link href="/auth/sign-in">
+          <button className="cursor-pointer border border-gray-200 hover:bg-gray-600 hover:text-white rounded-lg py-2 px-6 text-base font-medium transform transition hover:-translate-y-1 delay-150 duration-300 ease-in-out">
+            Sign In
+          </button>
+        </Link>
+        
       </header>
 
       {/* Main Content */}
