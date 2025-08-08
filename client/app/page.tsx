@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Search } from 'lucide-react';
+import Link from "next/link"; 
 
 // React Icons components (you'll need to install react-icons)
 const FaInstagram = () => <span>IG</span>; // Replace with actual FaInstagram
@@ -88,7 +89,7 @@ export default function CombinedPage() {
       <header className="flex justify-between items-center px-6 py-4 relative z-10 flex-shrink-0">
         <Link href="/">
           <span className="font-bold text-2xl">Rhoda</span>
-        </button>
+        </Link>
 
         <button className="cursor-pointer border border-gray-200 hover:bg-gray-600 hover:text-white rounded-lg py-2 px-6 text-base font-medium transform transition hover:-translate-y-1 delay-150 duration-300 ease-in-out">
           Sign In
