@@ -219,7 +219,7 @@ export default function Component() {
                     placeholder={method === "email" ? "you@email.com" : "+254 7XX XXX XXX"}
                   />
 
-                  <Button
+                  <button
                     onClick={handleContinue}
                     disabled={!isContinueEnabled()}
                     className="w-full h-12 rounded-2xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -229,7 +229,7 @@ export default function Component() {
                     }}
                   >
                     Continue with {method === "email" ? "E-Mail" : "Phone Number"}
-                  </Button>
+                  </button>
                 </div>
 
                 {/* Divider */}
@@ -242,6 +242,10 @@ export default function Component() {
                 {/* Google Sign In */}
                 <Button
                   variant="outline"
+                  onClick={() => {
+                    window.location.href = "/api/auth/google";
+                  }}
+
                   className="w-full h-12 rounded-2xl bg-transparent border-white/30 text-white hover:bg-white/10 font-medium"
                 >
                   <div className="flex items-center space-x-3">

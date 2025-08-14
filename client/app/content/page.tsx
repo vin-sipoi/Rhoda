@@ -97,7 +97,7 @@ export default function RhodaEditor() {
               formats.add("list")
             }
           }
-          node = node.parentNode
+          node :node.parentNode
         }
       }
     } catch (e) {
