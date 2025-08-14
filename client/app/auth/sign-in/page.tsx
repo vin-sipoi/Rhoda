@@ -113,7 +113,7 @@ export default function Component() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Gradient Background */}
-      <div
+    {/*  <div
         className="absolute inset-0"
         style={{
           background: `
@@ -125,7 +125,7 @@ export default function Component() {
       linear-gradient(135deg, #1e1e1e 0%, #2c304c 25%, #3c6351 50%, #61b693 75%, #1f2020 100%)
     `,
         }}
-      />
+      />*/}
 
       {/* Subtle Texture Overlay */}
       <div
