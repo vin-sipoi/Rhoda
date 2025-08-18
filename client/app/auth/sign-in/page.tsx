@@ -243,7 +243,7 @@ export default function Component() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    window.location.href = "/api/auth/google";
+                    window.location.href = "http://localhost:1337/api/connect/google?redirect_uri=http://localhost:3000/connect/google/redirect";
                   }}
 
                   className="w-full h-12 rounded-2xl bg-transparent border-white/30 text-white hover:bg-white/10 font-medium"
