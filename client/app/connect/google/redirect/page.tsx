@@ -20,9 +20,5 @@ export default function GoogleRedirect() {
     }
   }, [router])
 
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <span>Authenticating with Google...</span>
-    </div>
-  )
+  return null;
 }

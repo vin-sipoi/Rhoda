@@ -51,7 +51,16 @@ const RhodaDashboard: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
-  const userName = 'John';
+
+  // Fetch users from Strapi (no UI change, just fetch and log)
+  React.useEffect(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        // You can use this data in your UI if needed
+        console.log('Strapi users:', data.users);
+      });
+  }, []);
 
   const handleWriteClick = () => {
     router.push('/content');
@@ -59,45 +68,16 @@ const RhodaDashboard: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState('Courses');
     
-  const contentData: Record<string, Array<{ id?: string; avatar: string; title: string; subtitle: string; color: string; readTime?: string; progress?: number }>> = {
-    Courses: [
-      {
-        id: '1',
-        avatar: '/images/author1.jpg',
-        title: "Mastering ChatGPT Blog Creation: Dos and Don'ts for SaaS Marketing Managers",
-        subtitle: "Hello there! As a marketing manager in the SaaS industry, you might be looking for innovative ways to engage your audience.",
-        color: 'bg-green-100',
-        readTime: '5 min read',
-        progress: 37
-      },
-       {
-        avatar: '/public/avatar1.png',
-        title: 'I Tried These Creative Challenges—Heres What They Taught Me',
-        subtitle: 'From trending TikToks to 30-day content sprints, I share what worked, what flopped, and what surprised me.',
-        color: 'bg-green-100',
-        readTime: '3 min read',
-        progress: 100
-      },
-      {
-        avatar: '/public/avatar2.png',
-        title: 'Lets Talk Trends: Whats Hot in Content Right Now and How I amm Responding',
-        subtitle: 'A thoughtful analysis of current trends and how I adapt them to stay authentic and relevant.',
-        color: 'bg-yellow-100',
-        readTime: '7 min read',
-        progress: 100
-      },
-      {
-        avatar: '/public/avatar3.png',
-        title: 'A Behind-the-Scenes Look at How I Bring My Content Ideas to Life',
-        subtitle: 'Step into my creative world and see the real process behind planning, filming, and editing content.',
-        color: 'bg-blue-100',
-        readTime: '4 min read',
-        progress: 100
-      },
-    ],
-    Published: [
-     
-    ],
+  const [courses, setCourses] = useState<any[]>([]);
+  React.useEffect(() => {
+    fetch('/api/discover')
+      .then(res => res.json())
+      .then(data => setCourses(data.courses || []));
+  }, []);
+
+  const contentData: Record<string, Array<any>> = {
+    Courses: courses,
+    Published: [],
     'My Content': [],
     Drafts: [],
     Subscriptions: [],
@@ -112,9 +92,23 @@ const RhodaDashboard: React.FC = () => {
   ];
 
   const filteredContent = contentData[activeTab]?.filter(item =>
-    item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.title?.toLowerCase?.().includes(searchQuery.toLowerCase()) ||
+    item.subtitle?.toLowerCase?.().includes(searchQuery.toLowerCase()))
   ) || [];
+
+  // Ensure each course card has a visible background color
+  const getCardColor = (item: any, idx: number) => {
+    // Use color from item if present, else fallback to a visible default
+    return item.color || [
+      'bg-green-100',
+      'bg-yellow-100',
+      'bg-blue-100',
+      'bg-purple-100',
+      'bg-pink-100',
+      'bg-orange-100',
+      'bg-red-100',
+    ][idx % 7];
+  };
 
   return (
     <div className="min-h-screen flex bg-[#1e1e1e] relative">
@@ -208,7 +202,7 @@ const RhodaDashboard: React.FC = () => {
                 <Link
                   key={idx}
                   href={item.id ? `/dashboard/course/${item.id}` : '#'}
-                  className={`flex flex-col rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${item.color} shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                  className={`flex flex-col rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${getCardColor(item, idx)} shadow-lg hover:shadow-xl transition-shadow duration-200`}
                 >
                   <div className="flex items-start space-x-4 mb-4">
                     <div className="flex-1 min-w-0">
