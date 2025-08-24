@@ -68,9 +68,6 @@
     },
     "provider_id": {
       "type": "text"
-    },
-    "Number": {
-      "type": "string"
     }
   }
 }

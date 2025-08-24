@@ -13,6 +13,31 @@
   "attributes": {
     "micro": {
       "type": "text"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "lessons"
+    },
+    "content": {
+      "type": "blocks"
+    },
+    "vedio": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "order": {
+      "type": "integer"
+    },
+    "slug": {
+      "type": "uid"
     }
   }
 }

@@ -13,6 +13,30 @@
   "attributes": {
     "type_of_courses": {
       "type": "string"
+    },
+    "imagescontent": {
+      "type": "media",
+      "multiple": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "lessons": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lesson.lesson",
+      "mappedBy": "course"
+    },
+    "lesson": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::lesson.lesson"
+    },
+    "description": {
+      "type": "blocks"
     }
   }
 }
