@@ -1,38 +1,163 @@
 'use client';
 
-import React, { useState } from 'react';
-import { notFound } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
-import courseData from '../../../../data/courseData.json';
 import { ArrowLeft } from 'lucide-react';
 
-interface Params {
-  params: {
-    id: string;
-  };
+interface Lesson {
+  id: string;
+  title: string;
+  content: string;
+  image: string;
+  order?: number;
 }
 
-const CourseDetailPage: React.FC<Params> = ({ params }) => {
-  const { id } = params;
-  const course = courseData.courses.find(c => c.id === id);
+interface Course {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  readTime: string;
+  image: string;
+  content: string;
+}
+
+const CourseDetailPage: React.FC = () => {
+  const routeParams = useParams();
+  const id = Array.isArray(routeParams?.id) ? routeParams.id[0] : (routeParams?.id as string);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [lessons, setLessons] = useState<Lesson[]>([]);
+  const [loading, setLoading] = useState(true);
   const [checkedSections, setCheckedSections] = useState<number[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [currentSection, setCurrentSection] = useState(0);
 
-  const sidebarSections = [
-    "Introduction",
-    "Exploring Generative AI in Content Creation",
-    "Steering Clear of Common AI Writing Pitfalls",
-    "Understanding ChatGPT Capabilities - Define Your Style",
-    "Understand Your Readers",
-    "Creating Quality AI-powered Blogs that Stand Out",
-    "Conclusion: Embracing AI in Blog Creation",
-    "Afterword: The AI Behind This Article"
-  ];
+  // Function to extract plain text from Strapi content
+  const extractText = (content: any): string => {
+    if (!content) return '';
+    
+    // If it's already a string, return it
+    if (typeof content === 'string') return content;
+    
+    // If it's an object with children (rich text), extract text recursively
+    if (typeof content === 'object' && content.children) {
+      if (Array.isArray(content.children)) {
+        return content.children.map(extractText).join('');
+      }
+      return extractText(content.children);
+    }
+    
+    // If it's an array, join all text elements
+    if (Array.isArray(content)) {
+      return content.map(extractText).join('');
+    }
+    
+    // If it's an object with text property
+    if (typeof content === 'object' && content.text) {
+      return content.text;
+    }
+    
+    // If it's an object with content property
+    if (typeof content === 'object' && content.content) {
+      return extractText(content.content);
+    }
+    
+    // If it's an object with value property
+    if (typeof content === 'object' && content.value) {
+      return content.value;
+    }
+    
+    // For any other object, try to find text-like properties
+    if (typeof content === 'object') {
+      const textProps = ['text', 'content', 'value', 'title', 'name', 'description'];
+      for (const prop of textProps) {
+        if (content[prop] && typeof content[prop] === 'string') {
+          return content[prop];
+        }
+      }
+      
+      // If no text properties found, try to extract from all properties
+      const allText = Object.values(content)
+        .filter(val => val && typeof val === 'string')
+        .join(' ');
+      
+      if (allText) return allText;
+    }
+    
+    // Last resort: convert to string and clean up
+    const str = String(content);
+    if (str === '[object Object]') {
+      return ''; // Return empty string instead of [object Object]
+    }
+    
+    return str;
+  };
 
-  if (!course) {
-    notFound();
-  }
+  // Function to safely display content - returns empty string if no valid text found
+  const safeContent = (content: any): string => {
+    const extracted = extractText(content);
+    if (!extracted || extracted === '[object Object]' || extracted.trim() === '') {
+      return '';
+    }
+    return extracted;
+  };
+
+  const sidebarSections = lessons.length > 0 
+    ? lessons.map(lesson => safeContent(lesson.title) || `Lesson ${lesson.id}`)
+    : [
+        "Introduction",
+        "Exploring Generative AI in Content Creation",
+        "Steering Clear of Common AI Writing Pitfalls",
+        "Understanding ChatGPT Capabilities - Define Your Style",
+        "Understand Your Readers",
+        "Creating Quality AI-powered Blogs that Stand Out",
+        "Conclusion: Embracing AI in Blog Creation",
+        "Afterword: The AI Behind This Article"
+      ];
+
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    
+    // Fetch course data
+    fetch(`/api/courses/${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        if (data?.course) {
+          setCourse(data.course);
+          setLessons(data.lessons || []);
+          
+          // Debug: Log what we're receiving from Strapi
+          console.log('Course content type:', typeof data.course.content);
+          console.log('Course content:', data.course.content);
+          if (data.lessons && data.lessons.length > 0) {
+            console.log('First lesson content type:', typeof data.lessons[0].content);
+            console.log('First lesson content:', data.lessons[0].content);
+          }
+        } else {
+          setCourse(null);
+        }
+      })
+      .catch(() => setCourse(null))
+      .finally(() => isMounted && setLoading(false));
+    
+    // Check bookmark status
+    fetch(`/api/bookmarks?courseId=${id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (!isMounted) return;
+        setIsBookmarked(data.bookmarked || false);
+      })
+      .catch(() => {
+        // Silently fail for bookmarks
+      });
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [id]);
 
   const progress = (checkedSections.length / sidebarSections.length) * 100;
 
@@ -182,21 +307,43 @@ const CourseDetailPage: React.FC<Params> = ({ params }) => {
           >
             <ArrowLeft size={24} />
           </Link>
-          <img
-            src={course.image}
-            alt={course.title}
-            className="rounded-lg w-full max-h-[400px] object-cover"
-          />
+          {course && (
+            <img
+              src={course.image && course.image.trim() !== '' ? course.image : '/file.svg'}
+              alt={course.title}
+              className="rounded-lg w-full max-h-[400px] object-cover"
+            />
+          )}
           <div className="inline-block bg-white/20 rounded-full px-3 py-1 text-sm font-semibold mb-2">
-            {course.category}
+            {course?.category || 'Uncategorized'}
           </div>
           
           <div className="flex items-start justify-between gap-4">
             <h1 className="text-3xl font-bold leading-tight flex-1">
-              {course.title}
+              {course?.title || 'Untitled'}
             </h1>
             <button 
-              onClick={() => setIsBookmarked(!isBookmarked)}
+              onClick={async () => {
+                try {
+                  console.log('Toggling bookmark for course:', id);
+                  const response = await fetch('/api/bookmarks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ courseId: id, action: 'toggle' })
+                  });
+                  
+                  console.log('Bookmark response status:', response.status);
+                  if (response.ok) {
+                    const data = await response.json();
+                    console.log('Bookmark response data:', data);
+                    setIsBookmarked(data.bookmarked);
+                  } else {
+                    console.error('Bookmark request failed:', response.status);
+                  }
+                } catch (error) {
+                  console.error('Bookmark error:', error);
+                }
+              }}
               className="p-2 text-white/70 hover:text-yellow-400 transition-colors"
               aria-label={isBookmarked ? "Remove bookmark" : "Add bookmark"}
             >
@@ -218,20 +365,41 @@ const CourseDetailPage: React.FC<Params> = ({ params }) => {
           </div>
 
           <div className="text-sm text-white/70 mb-6">
-            {course.date} &bull; {course.readTime}
+            {course?.date || ''} {course?.readTime ? ` • ${course.readTime}` : ''}
           </div>
 
-          <div className="mb-10">
-           
-            <p className="whitespace-pre-line text-white/90">
-              Hello there! As a marketing manager in the SaaS industry, you might be looking for innovative ways to engage your audience. I bet generative AI has crossed your mind as an option for creating content. Well, let me share from my firsthand experience.
-            </p>
-            <p className="mt-4">
-              Google encourages high-quality blogs regardless of whether they're written by humans or created using artificial intelligence like ChatGPT. Here's what matters: producing original material with expertise and trustworthiness based on Google E-E-A-T principles.
-            </p>
-            <p className="mt-4">
-              This means focusing more on people-first writing rather than primarily employing AI tools to manipulate search rankings. There comes a time when many experienced professionals want to communicate their insights but get stuck due to limited writing skills – that's where Generative AI can step in.
-            </p>
+          <div className="mb-10 space-y-6">
+            {loading && (
+              <div className="text-white/70">Loading content…</div>
+            )}
+            {!loading && course && course.content && (
+              <div className="bg-white/5 rounded-lg p-6 border border-white/10">
+                <h2 className="text-xl font-semibold mb-4 text-green-400">Course Overview</h2>
+                {safeContent(course.content)}
+              </div>
+            )}
+            {!loading && lessons.length > 0 && (
+              <div className="space-y-8">
+                {lessons.map((lsn) => (
+                  <div key={lsn.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
+                    <div className="text-xl font-semibold mb-2">{safeContent(lsn.title) || `Lesson ${lsn.id}`}</div>
+                    {lsn.image && (
+                      <img
+                        src={lsn.image}
+                        alt={lsn.title}
+                        className="rounded-md w-full max-h-[320px] object-cover mb-3"
+                      />
+                    )}
+                    {lsn.content && safeContent(lsn.content) && (
+                      <div className="whitespace-pre-line text-white/90">{safeContent(lsn.content)}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            {!loading && !course?.content && lessons.length === 0 && (
+              <div className="text-white/70">No content available for this course yet.</div>
+            )}
           </div>
           
           {/* Next Button */}
@@ -269,7 +437,6 @@ const CourseDetailPage: React.FC<Params> = ({ params }) => {
                   </span>
                 </li>
               ))}
-
             </ul>
           </div>
         </aside>

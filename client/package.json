@@ -6,11 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "migrate:courses": "node scripts/migrate-courses.js"
   },
   "dependencies": {
+    "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
     "dompurify": "^3.2.6",
+    "dotenv": "^17.2.1",
+    "form-data": "^4.0.4",
     "lucide-react": "^0.525.0",
     "next": "15.4.3",
     "ogl": "^1.0.11",

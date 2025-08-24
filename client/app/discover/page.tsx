@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import axios from "axios";
 
 interface Category {
   category: string;
@@ -29,12 +30,20 @@ const DiscoverPage: React.FC = () => {
   const [allCourses, setAllCourses] = useState<CourseData[]>([]);
 
   useEffect(() => {
-    fetch("/data/discoverCourses.json")
-      .then((res) => res.json())
-      .then((data) => setCategories(data));
-    fetch("/data/courseData.json")
-      .then((res) => res.json())
-      .then((data) => setAllCourses(data.courses || []));
+    axios
+      .get("/api/discover")
+      .then((res) => {
+        setCategories(res.data?.categories || []);
+        setAllCourses(res.data?.courses || []);
+      })
+      .catch(() => {
+        fetch("/data/discoverCourses.json")
+          .then((res) => res.json())
+          .then((data) => setCategories(data));
+        fetch("/data/courseData.json")
+          .then((res) => res.json())
+          .then((data) => setAllCourses(data.courses || []));
+      });
   }, []);
 
   const filteredCategories = categories.filter((cat) =>
@@ -68,30 +77,69 @@ const DiscoverPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Category Cards */}
+      {/* Category Cards or All Courses fallback */}
       {!selectedCategory ? (
         <main className="flex flex-col px-4 lg:px-8 py-10 flex-1 overflow-auto">
-          <h2 className="text-white text-2xl font-bold mb-8">Discover Courses by Category</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
-            {filteredCategories.map((cat) => {
-              // Count courses in this category from allCourses
-              const count = allCourses.filter(
-                (course) =>
-                  course.category.toLowerCase().replace(/ /g, "") ===
-                  cat.category.toLowerCase().replace(/ /g, "")
-              ).length;
-              return (
-                <button
-                  key={cat.category}
-                  className="bg-[#232323] hover:bg-[#353535] rounded-2xl p-8 flex flex-col items-center shadow-lg transition-all duration-200 border border-transparent hover:border-blue-500"
-                  onClick={() => setSelectedCategory(cat.category)}
-                >
-                  <span className="text-3xl mb-4">{cat.category}</span>
-                  <span className="text-white/70 text-sm">{count} Courses</span>
-                </button>
-              );
-            })}
-          </div>
+          {categories.length > 0 ? (
+            <>
+              <h2 className="text-white text-2xl font-bold mb-8">Discover Courses by Category</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+                {filteredCategories.map((cat) => {
+                  const count = allCourses.filter(
+                    (course) =>
+                      course.category.toLowerCase().replace(/ /g, "") ===
+                      cat.category.toLowerCase().replace(/ /g, "")
+                  ).length;
+                  return (
+                    <button
+                      key={cat.category}
+                      className="bg-[#232323] hover:bg-[#353535] rounded-2xl p-8 flex flex-col items-center shadow-lg transition-all duration-200 border border-transparent hover:border-blue-500"
+                      onClick={() => setSelectedCategory(cat.category)}
+                    >
+                      <span className="text-3xl mb-4">{cat.category}</span>
+                      <span className="text-white/70 text-sm">{count} Courses</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-white text-2xl font-bold mb-8">All Courses</h2>
+              <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
+                {allCourses.length > 0 ? (
+                  allCourses.map((item) => (
+                    <Link
+                      key={item.id}
+                      href={`/dashboard/course/${item.id}`}
+                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                    >
+                      <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
+                        <img
+                          src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
+                          alt="avatar"
+                          className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                            {item.title}
+                          </div>
+                          <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
+                            {item.author?.name}
+                          </div>
+                          {item.readTime && (
+                            <div className="text-gray-600 text-xs">{item.readTime}</div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div className="text-center text-white/80 py-10">No courses available.</div>
+                )}
+              </div>
+            </>
+          )}
         </main>
       ) : (
         <main className="flex flex-col px-4 lg:px-8 py-10 flex-1 overflow-auto">
@@ -107,12 +155,12 @@ const DiscoverPage: React.FC = () => {
               selectedCourses.map((item) => (
                 <Link
                   key={item.id}
-                  href={"#"}
+                  href={`/dashboard/course/${item.id}`}
                   className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200`}
                 >
                   <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
                     <img
-                      src={item.image}
+                      src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
                       alt="avatar"
                       className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
                     />
