@@ -1,0 +1,18 @@
+{
+  "kind": "collectionType",
+  "collectionName": "learners",
+  "info": {
+    "singularName": "learner",
+    "pluralName": "learners",
+    "displayName": "Learner"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "text"
+    }
+  }
+}
