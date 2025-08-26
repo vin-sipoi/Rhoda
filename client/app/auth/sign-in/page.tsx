@@ -18,6 +18,13 @@ export default function Component() {
   const [code, setCode] = useState(["", "", "", "", "", ""])
   const [resendTimer, setResendTimer] = useState(0)
 
+  // Dynamic URL construction for Google Sign-In
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:1337"
+  const googleAuthPath = "/api/connect/google"
+  const redirectUri = process.env.NEXT_PUBLIC_GOOGLE_REDIRECT_URI ?? "http://localhost:3000/connect/google/redirect"
+  const googleAuthUrl = new URL(backendUrl + googleAuthPath)
+  googleAuthUrl.searchParams.append("redirect_uri", redirectUri)
+
   // Email validation function
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -112,21 +119,6 @@ export default function Component() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Gradient Background */}
-    {/*  <div
-        className="absolute inset-0"
-        style={{
-          background: `
-      radial-gradient(ellipse 800px 600px at 50% 50%, #61b693 0%, transparent 70%),
-      radial-gradient(ellipse 700px 500px at 15% 85%, #2c304c 0%, #2c304c 30%, transparent 60%),
-      radial-gradient(ellipse 600px 500px at 85% 15%, #1f2020 0%, #1f2020 40%, transparent 70%),
-      radial-gradient(ellipse 600px 500px at 85% 85%, #1e1e1e 0%, #1e1e1e 40%, transparent 70%),
-      radial-gradient(ellipse 500px 400px at 10% 10%, #1e1e1e 0%, transparent 60%),
-      linear-gradient(135deg, #1e1e1e 0%, #2c304c 25%, #3c6351 50%, #61b693 75%, #1f2020 100%)
-    `,
-        }}
-      />*/}
-
       {/* Subtle Texture Overlay */}
       <div
         className="absolute inset-0 opacity-20"
@@ -219,7 +211,7 @@ export default function Component() {
                     placeholder={method === "email" ? "you@email.com" : "+254 7XX XXX XXX"}
                   />
 
-                  <button
+                  <Button
                     onClick={handleContinue}
                     disabled={!isContinueEnabled()}
                     className="w-full h-12 rounded-2xl text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -229,7 +221,7 @@ export default function Component() {
                     }}
                   >
                     Continue with {method === "email" ? "E-Mail" : "Phone Number"}
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Divider */}
@@ -243,9 +235,8 @@ export default function Component() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    window.location.href = "http://localhost:1337/api/connect/google?redirect_uri=http://localhost:3000/connect/google/redirect";
+                    window.location.href = googleAuthUrl.toString()
                   }}
-
                   className="w-full h-12 rounded-2xl bg-transparent border-white/30 text-white hover:bg-white/10 font-medium"
                 >
                   <div className="flex items-center space-x-3">
@@ -264,7 +255,7 @@ export default function Component() {
                       />
                       <path
                         fill="#EA4335"
-                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.60 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
                     <span>Sign In with Google</span>
@@ -318,8 +309,8 @@ export default function Component() {
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         className="w-12 h-12 text-center bg-transparent border-2 border-white/40 text-white text-lg font-medium rounded-xl focus:border-white"
                         style={{
-                          backgroundColor: "transparent", // Changed to transparent
-                          border: "2px solid rgba(255, 255, 255, 0.8)", // Adjusted border for better visibility
+                          backgroundColor: "transparent",
+                          border: "2px solid rgba(255, 255, 255, 0.8)",
                         }}
                       />
                     ))}
