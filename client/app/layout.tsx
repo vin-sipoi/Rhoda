@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Hahmlet, Space_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 
 const InterSans = Inter({
@@ -46,7 +47,9 @@ export default function RootLayout({
       <body
         className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} ${roboto.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

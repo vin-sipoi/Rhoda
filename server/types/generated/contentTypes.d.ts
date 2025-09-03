@@ -419,20 +419,36 @@ export interface ApiEducatorEducator extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    age: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 120;
+          min: 13;
+        },
+        number
+      >;
+    avatar: Schema.Attribute.Media<'images'>;
+    bio: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    experience: Schema.Attribute.Text;
+    interests: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::educator.educator'
     > &
       Schema.Attribute.Private;
-    my_educator: Schema.Attribute.String;
+    Name: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 
@@ -447,20 +463,35 @@ export interface ApiLearnerLearner extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
+    age: Schema.Attribute.Integer &
+      Schema.Attribute.SetMinMax<
+        {
+          max: 120;
+          min: 13;
+        },
+        number
+      >;
+    avatar: Schema.Attribute.Media<'images'>;
+    bio: Schema.Attribute.Text;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    interests: Schema.Attribute.JSON;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
       'api::learner.learner'
     > &
       Schema.Attribute.Private;
-    Name: Schema.Attribute.Text;
+    Name: Schema.Attribute.String & Schema.Attribute.Required;
     publishedAt: Schema.Attribute.DateTime;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    user: Schema.Attribute.Relation<
+      'oneToOne',
+      'plugin::users-permissions.user'
+    >;
   };
 }
 

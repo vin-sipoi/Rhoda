@@ -42,7 +42,7 @@ function normalizeAttrs<T = any>(raw: any): T {
 }
 
 export async function GET(_req: Request, context: { params: { id: string } }) {
-  const { id } = context.params;
+  const { id } = await context.params;
   try {
     const draftQuery = STRAPI_PREVIEW ? "&publicationState=preview" : "";
     const qsPopulate = "populate=*";

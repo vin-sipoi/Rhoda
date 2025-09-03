@@ -1,14 +1,19 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu, TrendingUp, Bookmark, Check, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import { ProfileDropdown } from '@/components/ProfileDropdown';
 
 interface NavLinkProps {
   children: React.ReactNode;
   href?: string;
 }
+
+
 
 const NavLink: React.FC<NavLinkProps> = ({ children, href = "#" }) => (
   <a 
@@ -49,7 +54,57 @@ const Button: React.FC<ButtonProps> = ({
 const RhodaDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+
+  // Authentication check
+  React.useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/sign-in');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-white">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated (will redirect)
+  // Debug logging for profile check
+  console.log('Dashboard render - user:', user)
+  console.log('Dashboard render - user.profile:', user?.profile)
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  // Show profile setup if user doesn't have a profile
+  if (user) {
+    
+    return (
+      <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="bg-[#2a2a2a] border border-[#404040] rounded-lg p-8 text-center">
+            <h2 className="text-2xl font-bold text-white mb-4">Complete Your Profile</h2>
+            <p className="text-gray-300 mb-6">Please complete your profile to access the dashboard and start your learning journey.</p>
+            <button
+              onClick={() => router.push('/profile/setup')}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 transform hover:scale-105"
+            >
+              Complete Profile
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
 
   // Fetch users from Strapi (no UI change, just fetch and log)
@@ -169,6 +224,14 @@ const RhodaDashboard: React.FC = () => {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar (matches image: search bar, bell, avatar) */}
         <div className="flex items-center justify-between px-6 py-6 bg-[#232323] border-b border-[#232323]">
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden text-white/80 hover:text-white transition-colors mr-4"
+          >
+            <Menu size={24} />
+          </button>
+          
           {/* Search Bar Centered */}
           <div className="flex-1 flex justify-center">
             <div className="relative w-full max-w-xl">
@@ -182,15 +245,12 @@ const RhodaDashboard: React.FC = () => {
               />
             </div>
           </div>
-          {/* Bell and Avatar */}
+          {/* Bell and Profile Dropdown */}
           <div className="flex items-center gap-4 ml-6">
             <button className="text-white/80 hover:text-white transition-colors">
               <Bell size={24} />
             </button>
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 flex items-center justify-center bg-[#353535]">
-              {/* Example avatar, replace src as needed */}
-              <img src="/images/author1.jpg" alt="avatar" className="w-full h-full object-cover" />
-            </div>
+            <ProfileDropdown />
           </div>
         </div>
 

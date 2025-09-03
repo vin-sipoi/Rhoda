@@ -3,6 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import axios from "axios";
 
 interface Category {
@@ -28,6 +35,7 @@ const DiscoverPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [allCourses, setAllCourses] = useState<CourseData[]>([]);
+  const [openCourse, setOpenCourse] = useState<CourseData | null>(null);
 
   useEffect(() => {
     axios
@@ -152,32 +160,60 @@ const DiscoverPage: React.FC = () => {
           <h2 className="text-white text-2xl font-bold mb-8">{selectedCategory} Courses</h2>
           <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
             {selectedCourses.length > 0 ? (
-              selectedCourses.map((item) => (
-                <Link
-                  key={item.id}
-                  href={`/dashboard/course/${item.id}`}
-                  className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200`}
-                >
-                  <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
-                    <img
-                      src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
-                      alt="avatar"
-                      className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
-                        {item.title}
+              <>
+                {selectedCourses.map((item) => (
+                  <button
+                    key={item.id}
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 text-left w-full"
+                    onClick={() => setOpenCourse(item)}
+                  >
+                    <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
+                      <img
+                        src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
+                        alt="avatar"
+                        className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                          {item.title}
+                        </div>
+                        <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
+                          {item.author?.name}
+                        </div>
+                        {item.readTime && (
+                          <div className="text-gray-600 text-xs">{item.readTime}</div>
+                        )}
                       </div>
-                      <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
-                        {item.author?.name}
-                      </div>
-                      {item.readTime && (
-                        <div className="text-gray-600 text-xs">{item.readTime}</div>
-                      )}
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </button>
+                ))}
+                {/* Dialog for course content */}
+                <Dialog open={!!openCourse} onOpenChange={(open) => !open && setOpenCourse(null)}>
+                  <DialogContent>
+                    {openCourse && (
+                      <>
+                        <DialogHeader>
+                          <DialogTitle>{openCourse.title}</DialogTitle>
+                          <DialogDescription>
+                            {openCourse.category} &middot; {openCourse.readTime}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="mt-4 text-gray-900 whitespace-pre-line max-h-60 overflow-y-auto">
+                          {openCourse.content ? openCourse.content.slice(0, 400) + (openCourse.content.length > 400 ? '...' : '') : 'No content available.'}
+                        </div>
+                        <div className="mt-6 flex justify-end">
+                          <Link
+                            href={`/dashboard/course/${openCourse.id}`}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                          >
+                            Read More
+                          </Link>
+                        </div>
+                      </>
+                    )}
+                  </DialogContent>
+                </Dialog>
+              </>
             ) : (
               <div className="text-center text-white/80 py-10">
                 No courses found in this category.

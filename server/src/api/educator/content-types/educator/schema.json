@@ -11,8 +11,34 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "my_educator": {
-      "type": "string"
+    "Name": {
+      "type": "string",
+      "required": true
+    },
+    "age": {
+      "type": "integer",
+      "min": 13,
+      "max": 120
+    },
+    "interests": {
+      "type": "json"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "experience": {
+      "type": "text"
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
     }
   }
 }
