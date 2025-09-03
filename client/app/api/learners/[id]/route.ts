@@ -4,7 +4,7 @@ const STRAPI_URL = process.env.STRAPI_URL || process.env.NEXT_PUBLIC_STRAPI_URL 
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authorization = req.headers.get('authorization');
@@ -14,7 +14,7 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { id } = params;
+    const { id } = await params;
 
     const response = await fetch(`${STRAPI_URL}/api/learners/${id}`, {
       method: 'PUT',
@@ -40,7 +40,7 @@ export async function PUT(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authorization = req.headers.get('authorization');
@@ -49,7 +49,7 @@ export async function GET(
       return NextResponse.json({ error: 'No authorization token provided' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const response = await fetch(`${STRAPI_URL}/api/learners/${id}?populate=*`, {
       headers: {
@@ -72,7 +72,7 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authorization = req.headers.get('authorization');
@@ -81,7 +81,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'No authorization token provided' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const response = await fetch(`${STRAPI_URL}/api/learners/${id}`, {
       method: 'DELETE',
