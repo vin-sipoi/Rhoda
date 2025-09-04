@@ -51,11 +51,31 @@ const Button: React.FC<ButtonProps> = ({
   );
 };
 
+
+
 const RhodaDashboard: React.FC = () => {
+  // All hooks at the top, before any early returns
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState('Courses');
+  const [courses, setCourses] = useState<any[]>([]);
+
+  React.useEffect(() => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        // You can use this data in your UI if needed
+        console.log('Strapi users:', data.users);
+      });
+  }, []);
+
+  React.useEffect(() => {
+    fetch('/api/discover')
+      .then(res => res.json())
+      .then(data => setCourses(data.courses || []));
+  }, []);
 
   // Authentication check
   React.useEffect(() => {
@@ -77,58 +97,13 @@ const RhodaDashboard: React.FC = () => {
   }
 
   // Don't render anything if not authenticated (will redirect)
-  // Debug logging for profile check
-  console.log('Dashboard render - user:', user)
-  console.log('Dashboard render - user.profile:', user?.profile)
-
   if (!isAuthenticated) {
     return null;
   }
 
-  // Show profile setup if user doesn't have a profile
-  if (user) {
-    
-    return (
-      <div className="min-h-screen bg-[#1e1e1e] flex items-center justify-center p-6">
-        <div className="max-w-md w-full">
-          <div className="bg-[#2a2a2a] border border-[#404040] rounded-lg p-8 text-center">
-            <h2 className="text-2xl font-bold text-white mb-4">Complete Your Profile</h2>
-            <p className="text-gray-300 mb-6">Please complete your profile to access the dashboard and start your learning journey.</p>
-            <button
-              onClick={() => router.push('/profile/setup')}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 transform hover:scale-105"
-            >
-              Complete Profile
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-
-  // Fetch users from Strapi (no UI change, just fetch and log)
-  React.useEffect(() => {
-    fetch('/api/users')
-      .then(res => res.json())
-      .then(data => {
-        // You can use this data in your UI if needed
-        console.log('Strapi users:', data.users);
-      });
-  }, []);
-
   const handleWriteClick = () => {
     router.push('/content');
   };
-
-  const [activeTab, setActiveTab] = useState('Courses');
-    
-  const [courses, setCourses] = useState<any[]>([]);
-  React.useEffect(() => {
-    fetch('/api/discover')
-      .then(res => res.json())
-      .then(data => setCourses(data.courses || []));
-  }, []);
 
   const contentData: Record<string, Array<any>> = {
     Courses: courses,
