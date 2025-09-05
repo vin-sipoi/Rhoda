@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from '@/contexts/AuthContext';
 import { Search } from "lucide-react";
 import Link from "next/link";
 import {
@@ -31,11 +32,41 @@ interface CourseData {
 }
 
 const DiscoverPage: React.FC = () => {
+  const { user, token, isAuthenticated } = useAuth();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [allCourses, setAllCourses] = useState<CourseData[]>([]);
   const [openCourse, setOpenCourse] = useState<CourseData | null>(null);
+
+  // Enroll user in course when opening dialog (if authenticated)
+  useEffect(() => {
+    const enroll = async () => {
+      if (openCourse && user && token) {
+        try {
+          await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/user-courses`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              data: {
+                user: user.id,
+                course: openCourse.id,
+                enrolledAt: new Date().toISOString(),
+              }
+            })
+          });
+        } catch (err) {
+          // Optionally handle error
+        }
+      }
+    };
+    enroll();
+    // Only run when openCourse changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCourse]);
 
   useEffect(() => {
     axios
@@ -70,20 +101,7 @@ const DiscoverPage: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-[#1e1e1e]">
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-6 bg-[#232323] border-b border-[#232323]">
-        <div className="flex-1 flex justify-center">
-          <div className="relative w-full max-w-xl">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-            <input
-              type="text"
-              placeholder="Search categories"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-            />
-          </div>
-        </div>
-      </div>
+      
 
       {/* Category Cards or All Courses fallback */}
       {!selectedCategory ? (
@@ -91,6 +109,20 @@ const DiscoverPage: React.FC = () => {
           {categories.length > 0 ? (
             <>
               <h2 className="text-white text-2xl font-bold mb-8">Discover Courses by Category</h2>
+              <div className="flex items-center justify-between px-6 py-6 mb-2">
+                <div className="flex-1 flex justify-center">
+                  <div className="relative w-full max-w-xl">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
+                    <input
+                      type="text"
+                      placeholder="Search categories"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
                 {filteredCategories.map((cat) => {
                   const count = allCourses.filter(

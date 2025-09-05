@@ -1,0 +1,27 @@
+{
+  "kind": "collectionType",
+  "collectionName": "user_courses",
+  "info": {
+    "singularName": "user-course",
+    "pluralName": "user-courses",
+    "displayName": "User-course"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string"
+    },
+    "enrolledAt": {
+      "type": "date"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "user_courses"
+    }
+  }
+}

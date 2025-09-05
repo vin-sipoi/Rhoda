@@ -68,6 +68,12 @@
     },
     "provider_id": {
       "type": "text"
+    },
+    "course": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::course.course",
+      "inversedBy": "users"
     }
   }
 }

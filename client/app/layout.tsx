@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Hahmlet, Space_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "@/components/ui/toaster";
+import Header from "@/components/Header";
 
 
 const InterSans = Inter({
@@ -48,7 +50,11 @@ export default function RootLayout({
         className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} ${roboto.variable} antialiased`}
       >
         <AuthProvider>
-          {children}
+          <Header />
+          <main className="min-h-screen">
+            {children}
+          </main>
+          <Toaster />
         </AuthProvider>
       </body>
     </html>

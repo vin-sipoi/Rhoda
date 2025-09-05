@@ -37,6 +37,18 @@
     },
     "description": {
       "type": "blocks"
+    },
+    "users": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "plugin::users-permissions.user",
+      "mappedBy": "course"
+    },
+    "user_courses": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::user-course.user-course",
+      "mappedBy": "course"
     }
   }
 }

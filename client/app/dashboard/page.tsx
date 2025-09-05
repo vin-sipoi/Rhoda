@@ -1,19 +1,16 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Bell, User, Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu, TrendingUp, Bookmark, Check, LogOut } from 'lucide-react';
+import { Search, FileText, Edit, Users, BookOpen, Download, Send, X, Menu, Bookmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { ProfileDropdown } from '@/components/ProfileDropdown';
+import { Button } from '@/components/ui/button';
 
 interface NavLinkProps {
   children: React.ReactNode;
   href?: string;
 }
-
-
 
 const NavLink: React.FC<NavLinkProps> = ({ children, href = "#" }) => (
   <a 
@@ -24,35 +21,6 @@ const NavLink: React.FC<NavLinkProps> = ({ children, href = "#" }) => (
   </a>
 );
 
-interface ButtonProps {
-  children: React.ReactNode;
-  variant?: 'primary' | 'secondary';
-  className?: string;
-  onClick?: () => void;
-  style?: React.CSSProperties;
-}
-
-const Button: React.FC<ButtonProps> = ({ 
-  children, 
-  variant = 'primary', 
-  className = '',
-  onClick,
-  style
-}) => {
-  const baseClasses = "px-6 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105";
-  const variantClasses = variant === 'primary' 
-    ? "bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl" 
-    : "bg-white/10 hover:bg-white/20 text-white border border-white/20";
-  
-  return (
-    <button className={`${baseClasses} ${variantClasses} ${className}`} onClick={onClick} style={style}>
-      {children}
-    </button>
-  );
-};
-
-
-
 const RhodaDashboard: React.FC = () => {
   // All hooks at the top, before any early returns
   const [searchQuery, setSearchQuery] = useState('');
@@ -60,21 +28,23 @@ const RhodaDashboard: React.FC = () => {
   const { user, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('Courses');
-  const [courses, setCourses] = useState<any[]>([]);
+  const [enrolled, setEnrolled] = useState<any[]>([]);
+  const [bookmarks, setBookmarks] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<any[]>([]);
+  const [published, setPublished] = useState<any[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
 
   React.useEffect(() => {
-    fetch('/api/users')
+    fetch('/api/user-content')
       .then(res => res.json())
       .then(data => {
-        // You can use this data in your UI if needed
-        console.log('Strapi users:', data.users);
+        setEnrolled(data.enrolled || []);
+        setBookmarks(data.bookmarks || []);
+        setDrafts(data.drafts || []);
+        setPublished(data.published || []);
+        setSubscriptions(data.subscriptions || []);
       });
-  }, []);
-
-  React.useEffect(() => {
-    fetch('/api/discover')
-      .then(res => res.json())
-      .then(data => setCourses(data.courses || []));
   }, []);
 
   // Authentication check
@@ -101,24 +71,22 @@ const RhodaDashboard: React.FC = () => {
     return null;
   }
 
-  const handleWriteClick = () => {
-    router.push('/content');
-  };
-
   const contentData: Record<string, Array<any>> = {
-    Courses: courses,
-    Published: [],
-    'My Content': [],
-    Drafts: [],
-    Subscriptions: [],
+    Courses: enrolled,
+    Bookmarks: bookmarks,
+    'My Content': [], // You can map to user's own created content if available
+    Drafts: drafts,
+    Published: published,
+    Subscriptions: subscriptions,
   };
 
   const tabs = [
     { label: 'Courses', value: 'Courses', icon: <BookOpen size={18} /> },
+    { label: 'Bookmarks', value: 'Bookmarks', icon: <Bookmark size={18} /> },
     { label: 'My Content', value: 'My Content', icon: <FileText size={18} /> },
     { label: 'Drafts', value: 'Drafts', icon: <Edit size={18} /> },
     { label: 'Published', value: 'Published', icon: <Send size={18} /> },
-    { label: 'Subscriptions', value: 'Subscriptions', icon: <Download size={18} /> } 
+    { label: 'Subscriptions', value: 'Subscriptions', icon: <Download size={18} /> },
   ];
 
   const filteredContent = contentData[activeTab]?.filter(item =>
@@ -157,48 +125,54 @@ const RhodaDashboard: React.FC = () => {
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
         {/* Logo and Close Button */}
-        <div className="p-6 flex items-center justify-between">
-          <span className="text-white text-2xl font-bold font-hahmlet">Rhoda</span>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white/80 hover:text-white transition-colors p-1"
-          >
-            <X size={20} />
-          </button>
-        </div>
+        
 
         {/* Navigation Items */}
         <div className="flex-1 px-4 py-6 flex flex-col justify-between">
           <div className="flex flex-col gap-1">
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base bg-[#232323] text-white" disabled>
+            <button
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base ${activeTab === 'Courses' ? 'bg-[#232323] text-white' : 'text-white/80 hover:text-white hover:bg-[#232323]'}`}
+              onClick={() => setActiveTab('Courses')}
+            >
               <Users size={20} />
               <span>My Courses</span>
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
-              <TrendingUp size={20} />
-              <span>Not Started</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
-              <TrendingUp size={20} />
-              <span>In Progress</span>
-            </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
+            <button
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base ${activeTab === 'Bookmarks' ? 'bg-[#232323] text-white' : 'text-white/80 hover:text-white hover:bg-[#232323]'}`}
+              onClick={() => setActiveTab('Bookmarks')}
+            >
               <Bookmark size={20} />
               <span>Bookmarks</span>
             </button>
-            <button className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base text-white/80 hover:text-white hover:bg-[#232323]">
-              <Check size={20} />
-              <span>Completed</span>
+            <button
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base ${activeTab === 'Drafts' ? 'bg-[#232323] text-white' : 'text-white/80 hover:text-white hover:bg-[#232323]'}`}
+              onClick={() => setActiveTab('Drafts')}
+            >
+              <Edit size={20} />
+              <span>Drafts</span>
+            </button>
+            <button
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base ${activeTab === 'Published' ? 'bg-[#232323] text-white' : 'text-white/80 hover:text-white hover:bg-[#232323]'}`}
+              onClick={() => setActiveTab('Published')}
+            >
+              <Send size={20} />
+              <span>Published</span>
+            </button>
+            <button
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-base ${activeTab === 'Subscriptions' ? 'bg-[#232323] text-white' : 'text-white/80 hover:text-white hover:bg-[#232323]'}`}
+              onClick={() => setActiveTab('Subscriptions')}
+            >
+              <Download size={20} />
+              <span>Subscriptions</span>
             </button>
           </div>
-          {/* Logout button removed; should only appear after authentication */}
         </div>
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Bar (matches image: search bar, bell, avatar) */}
-        <div className="flex items-center justify-between px-6 py-6 bg-[#232323] border-b border-[#232323]">
+        {/* Search Bar Section */}
+        <div className="flex items-center justify-between px-6 py-6">
           {/* Mobile Menu Button */}
           <button
             onClick={() => setSidebarOpen(true)}
@@ -219,13 +193,6 @@ const RhodaDashboard: React.FC = () => {
                 className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
               />
             </div>
-          </div>
-          {/* Bell and Profile Dropdown */}
-          <div className="flex items-center gap-4 ml-6">
-            <button className="text-white/80 hover:text-white transition-colors">
-              <Bell size={24} />
-            </button>
-            <ProfileDropdown />
           </div>
         </div>
 
