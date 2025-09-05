@@ -14,7 +14,7 @@ interface ProfileSetupProps {
 }
 
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
-  const { user, createProfile } = useAuth()
+  const { user } = useAuth()
   const [profileType, setProfileType] = useState<'learner' | 'educator'>('learner')
   const [formData, setFormData] = useState({
     name: user?.username || '',
@@ -34,15 +34,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ onComplete }) => {
     setIsLoading(true)
 
     try {
-      const profileData = {
-        Name: formData.name,
-        bio: formData.bio,
-        interests: formData.interests.split(',').map(i => i.trim()),
-        ...(profileType === 'educator' && { experience: formData.experience }),
-      }
-
-      await createProfile(profileType, profileData)
-      
+      // Profile creation logic removed - just complete the setup
       if (onComplete) {
         onComplete()
       } else {
