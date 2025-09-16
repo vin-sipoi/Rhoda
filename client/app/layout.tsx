@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Inter, Hahmlet, Space_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SidebarProvider } from "@/contexts/SidebarContext";
 import { Toaster } from "@/components/ui/toaster";
 import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
+import MainContent from "@/components/MainContent";
 
 
 const InterSans = Inter({
@@ -50,11 +53,13 @@ export default function RootLayout({
         className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} ${roboto.variable} antialiased`}
       >
         <AuthProvider>
-          <Header />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Toaster />
+          <SidebarProvider>
+            <Sidebar />
+            <MainContent>
+              {children}
+            </MainContent>
+            <Toaster />
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>

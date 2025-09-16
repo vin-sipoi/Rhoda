@@ -39,27 +39,56 @@ const DiscoverPage: React.FC = () => {
   const [allCourses, setAllCourses] = useState<CourseData[]>([]);
   const [openCourse, setOpenCourse] = useState<CourseData | null>(null);
 
+  // Function to enroll user in a course
+  const enrollInCourse = async (courseId: string) => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch('/api/user-courses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          courseId: courseId,
+          userId: user.id,
+        })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Enrollment successful:', data.message);
+      }
+    } catch (err) {
+      console.error('Enrollment error:', err);
+    }
+  };
+
   // Enroll user in course when opening dialog (if authenticated)
   useEffect(() => {
     const enroll = async () => {
-      if (openCourse && user && token) {
+      if (openCourse && user) {
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_STRAPI_URL || 'http://localhost:1337'}/api/user-courses`, {
+          const response = await fetch('/api/user-courses', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify({
-              data: {
-                user: user.id,
-                course: openCourse.id,
-                enrolledAt: new Date().toISOString(),
-              }
+              courseId: openCourse.id,
+              userId: user.id,
             })
           });
+          
+          if (!response.ok) {
+            const errorData = await response.json();
+            console.error('Enrollment failed:', errorData);
+          } else {
+            const data = await response.json();
+            console.log('Enrollment successful:', data.message);
+          }
         } catch (err) {
-          // Optionally handle error
+          console.error('Enrollment error:', err);
         }
       }
     };
@@ -108,36 +137,47 @@ const DiscoverPage: React.FC = () => {
         <main className="flex flex-col px-4 lg:px-8 py-10 flex-1 overflow-auto">
           {categories.length > 0 ? (
             <>
-              <h2 className="text-white text-2xl font-bold mb-8">Discover Courses by Category</h2>
-              <div className="flex items-center justify-between px-6 py-6 mb-2">
-                <div className="flex-1 flex justify-center">
-                  <div className="relative w-full max-w-xl">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
-                    <input
-                      type="text"
-                      placeholder="Search categories"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-                    />
-                  </div>
+
+              <div className=" px-6 py-4 mb-6 flex justify-center">
+                <div className="relative w-full max-w-xl">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/60" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Search categories"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-[#353535] border border-transparent rounded-3xl text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                  />
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-6xl mx-auto cursor-pointer">
                 {filteredCategories.map((cat) => {
-                  const count = allCourses.filter(
+                  // Get the most recent course date for this category
+                  const categoryData = allCourses.filter(
                     (course) =>
                       course.category.toLowerCase().replace(/ /g, "") ===
                       cat.category.toLowerCase().replace(/ /g, "")
-                  ).length;
+                  );
+                  const latestDate = categoryData.length > 0 
+                    ? new Date(Math.max(...categoryData.map(course => new Date(course.date).getTime())))
+                    : new Date();
+                  
                   return (
                     <button
                       key={cat.category}
-                      className="bg-[#232323] hover:bg-[#353535] rounded-2xl p-8 flex flex-col items-center shadow-lg transition-all duration-200 border border-transparent hover:border-blue-500"
+                      className="bg-[#232323] hover:bg-[#353535] rounded-3xl p-6 flex flex-col items-center justify-between shadow-lg transition-all duration-200 border border-transparent hover:border-blue-500 min-h-[160px]"
                       onClick={() => setSelectedCategory(cat.category)}
                     >
-                      <span className="text-3xl mb-4">{cat.category}</span>
-                      <span className="text-white/70 text-sm">{count} Courses</span>
+                      <div className="flex flex-col items-center flex-1 justify-center">
+                        <span className="text-2xl mb-3 text-center">{cat.category}</span>
+                      </div>
+                      <span className="text-white/70 text-xs mt-auto">
+                        Updated {latestDate.toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
                     </button>
                   );
                 })}
@@ -146,36 +186,55 @@ const DiscoverPage: React.FC = () => {
           ) : (
             <>
               <h2 className="text-white text-2xl font-bold mb-8">All Courses</h2>
-              <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
                 {allCourses.length > 0 ? (
                   allCourses.map((item) => (
-                    <Link
+                    <button
                       key={item.id}
-                      href={`/dashboard/course/${item.id}`}
-                      className={`flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200`}
+                      onClick={async () => {
+                        await enrollInCourse(item.id);
+                        window.location.href = `/dashboard/course/${item.id}`;
+                      }}
+                      className="flex flex-col rounded-3xl px-6 py-6 bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 min-h-[200px] text-left w-full"
                     >
-                      <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
+                      <div className="flex items-center space-x-4 mb-4">
                         <img
                           src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
                           alt="avatar"
-                          className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
+                          className="w-14 h-14 rounded-full border-2 border-gray-200 object-cover flex-shrink-0"
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                          <div className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 leading-tight">
                             {item.title}
                           </div>
-                          <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
-                            {item.author?.name}
+                          <div className="text-gray-600 text-sm font-medium">
+                            by {item.author?.name || 'Unknown Author'}
                           </div>
-                          {item.readTime && (
-                            <div className="text-gray-600 text-xs">{item.readTime}</div>
-                          )}
                         </div>
                       </div>
-                    </Link>
+                      
+                      <div className="mt-auto flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                          {item.readTime && (
+                            <span className="text-gray-500 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                              {item.readTime}
+                            </span>
+                          )}
+                          <span className="text-gray-500 text-xs">
+                            {item.category}
+                          </span>
+                        </div>
+                        <span className="text-gray-400 text-xs">
+                          {new Date(item.date).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric'
+                          })}
+                        </span>
+                      </div>
+                    </button>
                   ))
                 ) : (
-                  <div className="text-center text-white/80 py-10">No courses available.</div>
+                  <div className="col-span-full text-center text-white/80 py-10">No courses available.</div>
                 )}
               </div>
             </>
@@ -190,32 +249,48 @@ const DiscoverPage: React.FC = () => {
             ← Back to Categories
           </button>
           <h2 className="text-white text-2xl font-bold mb-8">{selectedCategory} Courses</h2>
-          <div className="flex flex-col space-y-4 lg:space-y-6 max-w-4xl mx-auto w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
             {selectedCourses.length > 0 ? (
               <>
                 {selectedCourses.map((item) => (
                   <button
                     key={item.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between rounded-2xl px-4 lg:px-6 py-4 lg:py-5 bg-white shadow-lg hover:shadow-xl transition-shadow duration-200 text-left w-full"
+                    className="flex flex-col rounded-3xl px-6 py-6 bg-white shadow-lg hover:shadow-xl transition-all duration-200 text-left hover:scale-105 min-h-[200px]"
                     onClick={() => setOpenCourse(item)}
                   >
-                    <div className="flex items-start sm:items-center space-x-4 mb-4 sm:mb-0">
+                    <div className="flex items-center space-x-4 mb-4">
                       <img
                         src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
                         alt="avatar"
-                        className="w-10 h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white/40 object-cover flex-shrink-0"
+                        className="w-14 h-14 rounded-full border-2 border-gray-200 object-cover flex-shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                        <div className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 leading-tight">
                           {item.title}
                         </div>
-                        <div className="text-gray-700 text-sm mb-2 line-clamp-2 sm:line-clamp-1">
-                          {item.author?.name}
+                        <div className="text-gray-600 text-sm font-medium">
+                          by {item.author?.name || 'Unknown Author'}
                         </div>
-                        {item.readTime && (
-                          <div className="text-gray-600 text-xs">{item.readTime}</div>
-                        )}
                       </div>
+                    </div>
+                    
+                    <div className="mt-auto flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {item.readTime && (
+                          <span className="text-gray-500 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                            {item.readTime}
+                          </span>
+                        )}
+                        <span className="text-gray-500 text-xs">
+                          {item.category}
+                        </span>
+                      </div>
+                      <span className="text-gray-400 text-xs">
+                        {new Date(item.date).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric'
+                        })}
+                      </span>
                     </div>
                   </button>
                 ))}
@@ -247,7 +322,7 @@ const DiscoverPage: React.FC = () => {
                 </Dialog>
               </>
             ) : (
-              <div className="text-center text-white/80 py-10">
+              <div className="col-span-full text-center text-white/80 py-10">
                 No courses found in this category.
               </div>
             )}
