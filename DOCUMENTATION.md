@@ -649,13 +649,6 @@ const cachedUserData = useMemo(() => {
 - Integration tests: `npm run test:integration`
 - E2E tests: `npm run test:e2e`
 
----
-
-## **License**
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
 **Last Updated**: September 17, 2025  
 **Version**: 1.0.0  
-**Maintainer**: Rhoda Development Team
+
