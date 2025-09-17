@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    console.log('Profile data with user relation:', profileData);
+
 
     const response = await fetch(`${STRAPI_URL}/api/educators`, {
       method: 'POST',
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify(profileData),
     });
 
-    console.log('Strapi response status:', response.status);
+
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('Successfully created educator:', data);
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error creating educator profile:', error);

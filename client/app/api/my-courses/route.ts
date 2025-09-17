@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET(req: NextRequest) {
+async function GET(req: NextRequest) {
   try {
     // Get authorization header
     const authHeader = req.headers.get('authorization');
@@ -24,200 +24,131 @@ export async function GET(req: NextRequest) {
     }
 
     const userData = await userResponse.json();
-    console.log('Current user:', userData);
-
-    // Try to fetch user-courses using different approaches
     const userId = userData.id;
-    
-    // Try different populate strategies - most explicit first
-    const populateStrategies = [
-      'populate[course][fields][0]=id&populate[course][fields][1]=type_of_courses&populate[course][fields][2]=description',
-      'populate[course]=*',
-      'populate=*',
-      'populate[course][populate]=*', 
-      'populate=course'
-    ];
-    
-    let userCoursesResponse;
-    let strategyUsed = '';
-    
-    // First, try to get ALL user-courses to see the structure
-    console.log('=== TESTING: Fetching ALL user-courses without filtering ===');
-    const testResponse = await fetch(
-      `${strapiUrl}/api/user-courses?populate=*`,
+
+    // First, get all available courses to filter valid enrollments
+    const allCoursesResponse = await fetch(`${strapiUrl}/api/courses?populate=*`, {
+      headers: {
+        'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN || userToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    let availableCourses: Array<{id: string, data: any}> = [];
+    if (allCoursesResponse.ok) {
+      try {
+        const allCoursesData = await allCoursesResponse.json();
+        availableCourses = (allCoursesData.data || []).map((course: any) => ({
+          id: String(course.id),
+          data: course
+        }));
+      } catch (jsonError) {
+        console.error('Error parsing courses JSON:', jsonError);
+        return NextResponse.json({ 
+          error: 'Failed to parse courses data',
+          courses: [],
+          success: false
+        }, { status: 500 });
+      }
+    } else {
+      console.error('Failed to fetch all courses:', allCoursesResponse.status);
+      return NextResponse.json({ 
+        error: 'Failed to fetch available courses',
+        courses: [],
+        success: false
+      }, { status: allCoursesResponse.status });
+    }
+
+    // Get user enrollments with basic populate
+    const userCoursesResponse = await fetch(
+      `${strapiUrl}/api/user-courses?filters[user][id][$eq]=${userId}&populate=course`,
       {
         headers: {
-          'Authorization': `Bearer ${userToken}`,
+          'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN || userToken}`,
           'Content-Type': 'application/json',
         },
       }
     );
-    
-    if (testResponse.ok) {
-      const testData = await testResponse.json();
-      console.log('ALL user-courses (unfiltered):', JSON.stringify(testData, null, 2));
-      
-      // Also let's check what courses exist in Strapi
-      console.log('=== CHECKING ALL COURSES IN STRAPI ===');
-      const coursesResponse = await fetch(`${strapiUrl}/api/courses?populate=*`, {
-        headers: {
-          'Authorization': `Bearer ${userToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (coursesResponse.ok) {
-        const coursesData = await coursesResponse.json();
-        console.log('ALL courses in Strapi:', JSON.stringify(coursesData, null, 2));
-        console.log('Course IDs in Strapi:', coursesData.data?.map((c: any) => ({ 
-          id: c.id, 
-          title: c.attributes?.type_of_courses || c.attributes?.title,
-          documentId: c.documentId 
-        })));
-      }
-    }
-
-    // Try each strategy until one works
-    for (const strategy of populateStrategies) {
-      console.log(`Trying populate strategy: ${strategy}`);
-      userCoursesResponse = await fetch(
-        `${strapiUrl}/api/user-courses?filters[user][id][$eq]=${userId}&${strategy}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${userToken}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      if (userCoursesResponse.ok) {
-        strategyUsed = strategy;
-        console.log(`Success with strategy: ${strategy}`);
-        break;
-      } else {
-        console.log(`Failed with strategy: ${strategy}, status: ${userCoursesResponse.status}`);
-      }
-    }
-
-    if (!userCoursesResponse) {
-      console.error('All populate strategies failed');
-      return NextResponse.json({ 
-        error: 'Failed to fetch courses with any populate strategy',
-        courses: []
-      });
-    }
-
-    console.log('User-courses response status:', userCoursesResponse.status);
-    console.log('Successful strategy:', strategyUsed);
-
-    // If user token doesn't work, try with API token (if available)
-    if (!userCoursesResponse.ok && process.env.STRAPI_API_TOKEN) {
-      console.log('Trying with API token...');
-      userCoursesResponse = await fetch(
-        `${strapiUrl}/api/user-courses?filters[user][id][$eq]=${userId}&${strategyUsed}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      console.log('API token response status:', userCoursesResponse.status);
-    }
 
     if (!userCoursesResponse.ok) {
-      const errorText = await userCoursesResponse.text();
-      console.error('Failed to fetch user courses:', userCoursesResponse.status, errorText);
-      
+      console.error('Failed to fetch user courses:', userCoursesResponse.status);
       return NextResponse.json({ 
-        error: `Failed to fetch courses: ${userCoursesResponse.status}`,
-        debug: {
-          userId,
-          status: userCoursesResponse.status,
-          errorText,
-          strategyUsed
-        },
-        courses: []
+        error: 'Failed to fetch user courses',
+        courses: [],
+        success: false
+      }, { status: userCoursesResponse.status });
+    }
+
+    let userCoursesData;
+    try {
+      userCoursesData = await userCoursesResponse.json();
+    } catch (jsonError) {
+      console.error('Error parsing user courses JSON:', jsonError);
+      return NextResponse.json({ 
+        error: 'Failed to parse user courses data',
+        courses: [],
+        success: false
+      }, { status: 500 });
+    }
+
+    // Extract enrolled course IDs and filter out invalid ones
+    const enrolledCourseIds = (userCoursesData.data || [])
+      .map((enrollment: any) => {
+        const courseId = enrollment.attributes?.course?.data?.id || 
+                        enrollment.attributes?.course?.id ||
+                        enrollment.course?.id ||
+                        enrollment.course;
+        return {
+          courseId: String(courseId),
+          enrolledAt: enrollment.attributes?.enrolledAt || new Date().toISOString()
+        };
+      })
+      .filter((item: any) => item.courseId && item.courseId !== 'null')
+      .filter((item: any) => 
+        availableCourses.some((course: any) => course.id === item.courseId)
+      );
+
+    if (enrolledCourseIds.length === 0) {
+      return NextResponse.json({ 
+        success: true,
+        courses: [],
+        message: 'No valid enrolled courses found'
       });
     }
 
-    const userCoursesData = await userCoursesResponse.json();
-    console.log('User courses raw data:', JSON.stringify(userCoursesData, null, 2));
-    
-    // Log each enrollment structure in detail
-    if (userCoursesData.data && userCoursesData.data.length > 0) {
-      console.log('Number of enrollments found:', userCoursesData.data.length);
-      userCoursesData.data.forEach((enrollment: any, index: number) => {
-        console.log(`=== Enrollment ${index} ===`);
-        console.log('Enrollment ID:', enrollment.id);
-        console.log('Enrollment attributes:', enrollment.attributes);
-        console.log('Course relation structure:', enrollment.attributes?.course);
-        console.log('Full enrollment object:', JSON.stringify(enrollment, null, 2));
-      });
-    } else {
-      console.log('No enrollment data found or empty array');
-    }
-
-    // Map the courses and fetch course details separately if needed
-    const coursePromises = (userCoursesData.data || []).map(async (enrollment: any) => {
-      console.log('Full enrollment object:', JSON.stringify(enrollment, null, 2));
+    // Build course data using the available courses we already fetched
+    const validCourses = enrolledCourseIds.map((enrollment: any) => {
+      const courseData = availableCourses.find((course: any) => course.id === enrollment.courseId);
       
-      // Debug: Log all possible paths to find the course data
-      console.log('=== DETAILED COURSE EXTRACTION DEBUG ===');
-      console.log('enrollment.attributes:', JSON.stringify(enrollment.attributes, null, 2));
-      console.log('enrollment.attributes?.course:', JSON.stringify(enrollment.attributes?.course, null, 2));
-      console.log('enrollment.attributes?.course?.data:', JSON.stringify(enrollment.attributes?.course?.data, null, 2));
-      console.log('enrollment.attributes?.course?.data?.attributes:', JSON.stringify(enrollment.attributes?.course?.data?.attributes, null, 2));
-      
-      // Try ALL possible course data structures
-      let course = enrollment.attributes?.course?.data?.attributes || 
-                  enrollment.attributes?.course?.attributes ||
-                  enrollment.attributes?.course?.data ||
-                  enrollment.attributes?.course || 
-                  {};
-      
-      let courseId = enrollment.attributes?.course?.data?.id || 
-                    enrollment.attributes?.course?.id ||
-                    enrollment.course?.id ||
-                    enrollment.course ||
-                    null;
-      
-      console.log('Final extracted course data:', JSON.stringify(course, null, 2));
-      console.log('Final extracted course ID:', courseId);
-      console.log('Course ID type:', typeof courseId);
-      
-      // If we don't have course data but have an ID, fetch it separately
-      if (courseId && Object.keys(course).length === 0) {
-        console.log(`Fetching course data separately for ID: ${courseId}`);
-        try {
-          const courseResponse = await fetch(`${strapiUrl}/api/courses/${courseId}`, {
-            headers: {
-              'Authorization': `Bearer ${process.env.STRAPI_API_TOKEN || userToken}`,
-              'Content-Type': 'application/json',
-            },
-          });
-          
-          if (courseResponse.ok) {
-            const courseData = await courseResponse.json();
-            course = courseData.data?.attributes || courseData.attributes || {};
-            console.log('Fetched course data:', JSON.stringify(course, null, 2));
-          } else if (courseResponse.status === 404) {
-            console.warn(`Course ${courseId} not found (404) - this enrollment points to a deleted course`);
-            // Return null to filter out this invalid enrollment
-            return null;
-          }
-        } catch (error) {
-          console.error(`Failed to fetch course ${courseId}:`, error);
-          return null;
-        }
+      if (!courseData) {
+        return null;
       }
-      
-      // Extract text content from blocks/rich text
+
+      const courseItem = courseData.data;
+      const attrs = courseItem.attributes || courseItem;
+
+      // Extract image URL - same logic as discover API
+      const extractImageUrl = (mediaField: any): string => {
+        if (!mediaField) return '';
+        const data = Array.isArray(mediaField?.data) ? mediaField.data[0] : mediaField.data;
+        const url = data?.attributes?.formats?.thumbnail?.url || 
+                   data?.attributes?.formats?.small?.url ||
+                   data?.attributes?.url;
+        return url ? (url.startsWith('http') ? url : `${strapiUrl}${url}`) : '';
+      };
+
+      const imageUrl = extractImageUrl(attrs.imagescontent) || 
+                      extractImageUrl(attrs.image) || 
+                      extractImageUrl(attrs.cover) || 
+                      extractImageUrl(attrs.thumbnail) ||
+                      '';
+
+      // Extract content for subtitle - same logic as discover API
       const extractTextFromBlocks = (blocks: any): string => {
         if (!blocks) return '';
         if (typeof blocks === 'string') return blocks;
         if (Array.isArray(blocks)) {
-          return blocks.map(block => {
+          return blocks.map((block: any) => {
             if (block.children && Array.isArray(block.children)) {
               return block.children.map((child: any) => child.text || '').join('');
             }
@@ -226,64 +157,57 @@ export async function GET(req: NextRequest) {
         }
         return '';
       };
-      
-      const description = extractTextFromBlocks(course.description) || 
-                         extractTextFromBlocks(course.content) || 
-                         course.type_of_courses || 
-                         'No description available';
-      
-      // Try multiple possible title fields
-      const title = course.type_of_courses || 
-                   course.title || 
-                   course.name || 
-                   course.displayName ||
-                   course.Name ||
-                   (courseId ? `Course ${courseId}` : `Enrollment ${enrollment.id}`);
-      
-      console.log(`Mapping course ${courseId}: title="${title}", type_of_courses="${course.type_of_courses}"`);
-      
-      // If we still don't have course data, return a placeholder
-      if (!courseId) {
-        console.warn('No course ID found for enrollment:', enrollment.id);
-        return {
-          id: null,
-          title: `Enrollment ${enrollment.id}`,
-          subtitle: 'Course data not available - please re-enroll',
-          readTime: '5 min read',
-          enrolledAt: enrollment.attributes?.enrolledAt,
-          color: 'bg-red-100',
-          _debug: { enrollment, course }
-        };
+
+      const content = extractTextFromBlocks(attrs.description) || 
+                     extractTextFromBlocks(attrs.content) || 
+                     attrs.type_of_courses || 
+                     '';
+
+      const title = attrs.type_of_courses || 
+                   attrs.title || 
+                   attrs.name || 
+                   `Course ${enrollment.courseId}`;
+
+      // Calculate read time if not provided
+      let readTime = attrs.readTime || '';
+      if (!readTime && content) {
+        const words = content.trim().split(/\s+/).length;
+        const mins = Math.max(1, Math.round(words / 200));
+        readTime = `${mins} min read`;
       }
 
-      return {
-        id: courseId,
-        title: title,
-        subtitle: description.substring(0, 150) + (description.length > 150 ? '...' : ''),
-        readTime: course.readTime || '5 min read',
-        enrolledAt: enrollment.attributes?.enrolledAt,
-        color: 'bg-blue-100',
-        _debug: course
+      // Extract author name - same logic as discover API
+      const extractAuthorName = (attrs: any): string => {
+        const getSingle = (rel: any): any => (Array.isArray(rel?.data) ? rel?.data?.[0] : rel?.data);
+        const edu = getSingle(attrs.educator)?.attributes;
+        const aut = getSingle(attrs.author)?.attributes;
+        const usr = getSingle(attrs.user)?.attributes;
+        return edu?.name || edu?.fullName || edu?.username || 
+               aut?.name || usr?.name || usr?.username || 
+               'Unknown Author';
       };
-    });
 
-    // Wait for all course data to be fetched
-    const allCourses = await Promise.all(coursePromises);
-    
-    // Filter out null values (invalid enrollments pointing to deleted courses)
-    const validCourses = allCourses.filter(course => course !== null);
-    
-    console.log(`Filtered out ${allCourses.length - validCourses.length} invalid enrollments`);
+      return {
+        id: enrollment.courseId,
+        title: title,
+        subtitle: content.substring(0, 150) + (content.length > 150 ? '...' : ''),
+        content: content,
+        readTime: readTime,
+        image: imageUrl,
+        category: attrs.type_of_courses || 'Uncategorized',
+        date: attrs.publishedAt || attrs.createdAt || '',
+        enrolledAt: enrollment.enrolledAt,
+        author: { name: extractAuthorName(attrs) },
+        shareText: attrs.shareText || '',
+        articleSections: Array.isArray(attrs.articleSections) ? attrs.articleSections : [],
+      };
+    }).filter((course: any) => course !== null);
 
     return NextResponse.json({ 
       success: true,
       courses: validCourses,
-      debug: {
-        userId,
-        totalEnrollments: userCoursesData.data?.length || 0,
-        validEnrollments: validCourses.length,
-        invalidEnrollments: allCourses.length - validCourses.length
-      }
+      totalEnrolled: enrolledCourseIds.length,
+      validCourses: validCourses.length
     });
 
   } catch (error) {
@@ -294,3 +218,5 @@ export async function GET(req: NextRequest) {
     }, { status: 500 });
   }
 }
+
+export { GET };

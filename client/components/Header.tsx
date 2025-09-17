@@ -15,8 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import { Badge } from '@/components/ui/badge'
-
 import {
   User,
   Settings,
@@ -107,7 +105,7 @@ const Header = () => {
                     <span>Profile</span>
                   </Link>
                 </DropdownMenuItem>
-                
+
                 <DropdownMenuItem asChild>
                   <Link href="/settings" className="cursor-pointer text-white hover:bg-gray-700 focus:bg-gray-700">
                     <Settings className="mr-2 h-4 w-4" />
@@ -115,7 +113,7 @@ const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-gray-700" />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleLogout}
                   className="cursor-pointer text-red-400 hover:text-red-300 hover:bg-gray-700 focus:bg-gray-700"
                 >

@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
   }
 
   const data = await res.json();
-  console.log('Fetched user courses data:', JSON.stringify(data, null, 2));
+
 
   // Map to dashboard format
   const enrolled = (data.data || []).map((entry: any) => {

@@ -24,10 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const userData = await userResponse.json();
-    console.log('Authenticated user:', userData);
-
     const body = await req.json();
-    console.log('Creating learner with data:', body);
 
     // Add the user relation to the profile data (Strapi v5 expects connect with documentId)
     const profileData = {
@@ -42,8 +39,6 @@ export async function POST(req: NextRequest) {
       }
     };
 
-    console.log('Profile data with user relation:', profileData);
-
     const response = await fetch(`${STRAPI_URL}/api/learners`, {
       method: 'POST',
       headers: {
@@ -52,8 +47,6 @@ export async function POST(req: NextRequest) {
       },
       body: JSON.stringify(profileData),
     });
-
-    console.log('Strapi response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -67,7 +60,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('Successfully created learner:', data);
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error creating learner profile:', error);

@@ -43,31 +43,25 @@ const RhodaDashboard: React.FC = () => {
           headers['Authorization'] = `Bearer ${authToken}`;
         }
 
-        console.log('Fetching user courses with token:', !!authToken);
         const response = await fetch('/api/my-courses', { headers });
 
         if (!response.ok) {
-          const errorData = await response.json();
-          console.error('Failed to fetch user courses:', response.status, response.statusText, errorData);
+          try {
+            const errorData = await response.json();
+            console.error('Failed to fetch user courses:', response.status, response.statusText, errorData);
+          } catch (jsonError) {
+            console.error('Failed to fetch user courses (non-JSON response):', response.status, response.statusText);
+          }
           return;
         }
 
         const data = await response.json();
-        console.log('Dashboard received data:', data);
-        
         const courses = data.courses || data.enrolled || [];
-        console.log('Setting enrolled courses:', courses);
-        courses.forEach((course: any, index: number) => {
-          console.log(`Course ${index}:`, {
-            id: course.id,
-            title: course.title,
-            subtitle: course.subtitle
-          });
-        });
-        
         setEnrolled(courses);
       } catch (error) {
         console.error('Error fetching user courses:', error);
+        // Set empty courses array to prevent UI from breaking
+        setEnrolled([]);
       }
     };
 
@@ -100,22 +94,6 @@ const RhodaDashboard: React.FC = () => {
     return null;
   }
 
-
-
-  // Ensure each course card has a visible background color
-  const getCardColor = (item: any, idx: number) => {
-    // Use color from item if present, else fallback to a visible default
-    return item.color || [
-      'bg-green-100',
-      'bg-yellow-100',
-      'bg-blue-100',
-      'bg-purple-100',
-      'bg-pink-100',
-      'bg-orange-100',
-      'bg-red-100',
-    ][idx % 7];
-  };
-
   return (
     <div className="min-h-screen bg-[#1e1e1e]">
       {/* Header Section with Search */}
@@ -141,31 +119,60 @@ const RhodaDashboard: React.FC = () => {
         </div>
 
         {enrolled.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {enrolled
               .filter(item =>
                 item.title?.toLowerCase?.().includes(searchQuery.toLowerCase()) ||
-                item.subtitle?.toLowerCase?.().includes(searchQuery.toLowerCase())
+                item.subtitle?.toLowerCase?.().includes(searchQuery.toLowerCase()) ||
+                item.category?.toLowerCase?.().includes(searchQuery.toLowerCase())
               )
               .map((item, idx) => (
                 <Link
                   key={item.id || idx}
                   href={item.id ? `/dashboard/course/${item.id}` : '#'}
-                  className={`flex flex-col rounded-2xl px-4 lg:px-6 py-4 lg:py-5 ${getCardColor(item, idx)} shadow-lg hover:shadow-xl transition-shadow duration-200 cursor-pointer`}
-                  onClick={() => console.log('Clicking course:', item.id, 'URL:', `/dashboard/course/${item.id}`)}
+                  className="flex flex-col rounded-3xl px-6 py-6 bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 min-h-[200px] text-left w-full"
                 >
-                  <div className="flex items-start space-x-4 mb-4">
+                  <div className="flex items-center space-x-4 mb-4">
+                    <img
+                      src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
+                      alt="course thumbnail"
+                      className="w-14 h-14 rounded-full border-2 border-gray-200 object-cover flex-shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
-                      <div className="font-bold text-base lg:text-lg text-gray-900 mb-1 line-clamp-2">
+                      <div className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 leading-tight">
                         {item.title}
                       </div>
-                      <div className="text-gray-700 text-sm mb-2 line-clamp-2">
-                        {item.subtitle}
+                      <div className="text-gray-600 text-sm font-medium">
+                        Continue Learning
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="text-gray-700 text-sm mb-4 line-clamp-3 flex-1">
+                    {item.subtitle || item.content?.substring(0, 120) + (item.content?.length > 120 ? '...' : '')}
+                  </div>
+
+                  <div className="mt-auto flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
                       {item.readTime && (
-                        <div className="text-gray-600 text-xs">{item.readTime}</div>
+                        <span className="text-gray-500 text-xs bg-gray-100 px-2 py-1 rounded-full">
+                          {item.readTime}
+                        </span>
+                      )}
+                      {item.category && (
+                        <span className="text-gray-500 text-xs">
+                          {item.category}
+                        </span>
                       )}
                     </div>
+                    {item.enrolledAt && (
+                      <span className="text-gray-400 text-xs">
+                        Enrolled {new Date(item.enrolledAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric'
+                        })}
+                      </span>
+                    )}
                   </div>
                 </Link>
               ))}

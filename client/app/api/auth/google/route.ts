@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Otherwise, start the OAuth flow by redirecting to Strapi
-    console.log("Starting Google OAuth flow, redirecting to:", STRAPI_GOOGLE_CONNECT);
+
     return NextResponse.redirect(STRAPI_GOOGLE_CONNECT);
   } catch (error) {
     console.error("Google OAuth error:", error);

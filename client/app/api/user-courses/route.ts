@@ -15,10 +15,6 @@ export async function POST(req: NextRequest) {
     const strapiUrl = process.env.STRAPI_URL || 'http://localhost:1337';
     const strapiToken = process.env.STRAPI_API_TOKEN || process.env.STRAPI_TOKEN;
 
-    console.log('Strapi URL:', strapiUrl);
-    console.log('Has Strapi Token:', !!strapiToken);
-    console.log('Enrolling user:', userId, 'in course:', courseId);
-
     // Check if user is already enrolled
     const existingEnrollment = await fetch(
       `${strapiUrl}/api/user-courses?filters[user][id][$eq]=${userId}&filters[course][id][$eq]=${courseId}`,
@@ -48,8 +44,6 @@ export async function POST(req: NextRequest) {
         Name: `User ${userId} enrolled in Course ${courseId}` // Add a name for the enrollment
       }
     };
-    
-    console.log('Creating enrollment with data:', JSON.stringify(enrollmentData, null, 2));
 
     const response = await fetch(`${strapiUrl}/api/user-courses`, {
       method: 'POST',
@@ -69,8 +63,6 @@ export async function POST(req: NextRequest) {
         errorData = { message: errorText };
       }
       console.error('Strapi enrollment error:', errorData);
-      console.error('Response status:', response.status);
-      console.error('Response headers:', Object.fromEntries(response.headers.entries()));
       return NextResponse.json(
         { error: 'Failed to enroll user in course', details: errorData, status: response.status }, 
         { status: response.status }
@@ -78,7 +70,6 @@ export async function POST(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('Enrollment created successfully:', JSON.stringify(data, null, 2));
     
     return NextResponse.json({ 
       message: 'Successfully enrolled in course',

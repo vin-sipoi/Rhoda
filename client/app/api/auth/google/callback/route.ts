@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
     }
 
     const googleUser = await googleUserResponse.json();
-    console.log("Google user info:", googleUser);
+
 
     // Now authenticate with Strapi using the Google user info
     // First, try to find existing user
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     }
 
     userData = await strapiResponse.json();
-    console.log("Strapi user data:", userData);
+
 
     return NextResponse.json({
       jwt: userData.jwt,

@@ -57,12 +57,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         const storedToken = localStorage.getItem('jwt')
-        console.log('AuthContext: storedToken in localStorage:', storedToken)
         if (storedToken) {
           await login(storedToken)
         } else {
           setIsLoading(false)
-          console.log('AuthContext: No token found, setIsLoading(false) called')
         }
       } catch (error) {
         console.error('Failed to initialize auth:', error)
@@ -75,7 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const fetchUserProfile = async (authToken: string): Promise<User> => {
-    console.log("Fetching user profile with token:", authToken?.substring(0, 20) + "...");
     try {
       const response = await fetch('/api/auth/me', {
         headers: {
@@ -89,7 +86,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(`Failed to fetch user profile: ${response.status}`)
       }
       const userData = await response.json();
-      console.log("/api/auth/me response:", userData);
       if (!userData || userData.error) {
         console.error("/api/auth/me returned error or empty:", userData);
         return null as any;
@@ -105,7 +101,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true)
     try {
       const userData = await fetchUserProfile(authToken)
-      console.log("login: userData from fetchUserProfile", userData)
       setToken(authToken)
       setUser(userData)
       localStorage.setItem('jwt', authToken)
@@ -114,7 +109,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null)
     } finally {
       setIsLoading(false)
-      console.log("login: setIsLoading(false) called")
     }
   }
 

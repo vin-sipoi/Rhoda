@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { access_token, id_token } = body;
 
-    console.log("Exchanging Google tokens for Strapi JWT...");
+
     
     if (!access_token && !id_token) {
       return NextResponse.json({ error: 'No tokens provided' }, { status: 400 });
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
         if (strapiResponse.ok) {
           const strapiData = await strapiResponse.json();
-          console.log("Strapi auth success:", strapiData);
+
           
           if (strapiData.jwt) {
             return NextResponse.json({ 
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (error) {
-        console.log("Method 1 failed, trying method 2...");
+
       }
     }
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         
         if (googleUserResponse.ok) {
           const googleUser = await googleUserResponse.json();
-          console.log("Google user data:", googleUser);
+
 
           // Try to find or create user in Strapi
           const strapiAuthResponse = await fetch(`${STRAPI_URL}/api/auth/google/callback`, {
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
           if (strapiAuthResponse.ok) {
             const strapiData = await strapiAuthResponse.json();
-            console.log("Strapi manual auth success:", strapiData);
+
             
             if (strapiData.jwt) {
               return NextResponse.json({ 
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
           }
         }
       } catch (error) {
-        console.log("Method 2 failed:", error);
+
       }
     }
 

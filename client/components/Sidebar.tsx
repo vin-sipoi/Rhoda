@@ -94,7 +94,7 @@ const Sidebar = () => {
         "w-64"
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-800">
+        <div className="flex items-center justify-between p-4">
           {!isCollapsed && (
             <Link href="/dashboard" className="flex items-center space-x-2">
               <span className="font-bold text-xl text-white">Rhoda</span>
@@ -124,7 +124,7 @@ const Sidebar = () => {
                 className={cn(
                   "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group",
                   isActive
-                    ? "bg-blue-600 text-white"
+                    ? "bg-gray-400 text-white"
                     : "text-gray-300 hover:bg-[#232323] hover:text-white",
                   isCollapsed && "lg:justify-center lg:px-2"
                 )}

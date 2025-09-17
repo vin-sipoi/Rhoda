@@ -129,13 +129,7 @@ const CourseDetailPage: React.FC = () => {
           setCourse(data.course);
           setLessons(data.lessons || []);
           
-          // Debug: Log what we're receiving from Strapi
-          console.log('Course content type:', typeof data.course.content);
-          console.log('Course content:', data.course.content);
-          if (data.lessons && data.lessons.length > 0) {
-            console.log('First lesson content type:', typeof data.lessons[0].content);
-            console.log('First lesson content:', data.lessons[0].content);
-          }
+
         } else {
           setCourse(null);
         }
@@ -325,17 +319,17 @@ const CourseDetailPage: React.FC = () => {
             <button 
               onClick={async () => {
                 try {
-                  console.log('Toggling bookmark for course:', id);
+
                   const response = await fetch('/api/bookmarks', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ courseId: id, action: 'toggle' })
                   });
                   
-                  console.log('Bookmark response status:', response.status);
+
                   if (response.ok) {
                     const data = await response.json();
-                    console.log('Bookmark response data:', data);
+
                     setIsBookmarked(data.bookmarked);
                   } else {
                     console.error('Bookmark request failed:', response.status);

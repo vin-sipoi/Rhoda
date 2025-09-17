@@ -57,7 +57,6 @@ const DiscoverPage: React.FC = () => {
       
       if (response.ok) {
         const data = await response.json();
-        console.log('Enrollment successful:', data.message);
       }
     } catch (err) {
       console.error('Enrollment error:', err);
@@ -85,7 +84,6 @@ const DiscoverPage: React.FC = () => {
             console.error('Enrollment failed:', errorData);
           } else {
             const data = await response.json();
-            console.log('Enrollment successful:', data.message);
           }
         } catch (err) {
           console.error('Enrollment error:', err);
@@ -243,10 +241,10 @@ const DiscoverPage: React.FC = () => {
       ) : (
         <main className="flex flex-col px-4 lg:px-8 py-10 flex-1 overflow-auto">
           <button
-            className="mb-6 text-blue-400 hover:underline text-left"
+            className="mb-6 text-[gray-200] text-left cursor-pointer"
             onClick={() => setSelectedCategory(null)}
           >
-            ← Back to Categories
+            Back to Categories
           </button>
           <h2 className="text-white text-2xl font-bold mb-8">{selectedCategory} Courses</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-6xl mx-auto w-full">
