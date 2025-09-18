@@ -190,8 +190,12 @@ const DiscoverPage: React.FC = () => {
                     <button
                       key={item.id}
                       onClick={async () => {
-                        await enrollInCourse(item.id);
-                        window.location.href = `/dashboard/course/${item.id}`;
+                        if (isAuthenticated) {
+                          await enrollInCourse(item.id);
+                          window.location.href = `/dashboard/course/${item.id}`;
+                        } else {
+                          setOpenCourse(item);
+                        }
                       }}
                       className="flex flex-col rounded-3xl px-6 py-6 bg-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 min-h-[200px] text-left w-full"
                     >
@@ -254,7 +258,14 @@ const DiscoverPage: React.FC = () => {
                   <button
                     key={item.id}
                     className="flex flex-col rounded-3xl px-6 py-6 bg-white shadow-lg hover:shadow-xl transition-all duration-200 text-left hover:scale-105 min-h-[200px]"
-                    onClick={() => setOpenCourse(item)}
+                    onClick={async () => {
+                      if (isAuthenticated) {
+                        await enrollInCourse(item.id);
+                        window.location.href = `/dashboard/course/${item.id}`;
+                      } else {
+                        setOpenCourse(item);
+                      }
+                    }}
                   >
                     <div className="flex items-center space-x-4 mb-4">
                       <img
@@ -306,13 +317,30 @@ const DiscoverPage: React.FC = () => {
                         <div className="mt-4 text-gray-900 whitespace-pre-line max-h-60 overflow-y-auto">
                           {openCourse.content ? openCourse.content.slice(0, 400) + (openCourse.content.length > 400 ? '...' : '') : 'No content available.'}
                         </div>
-                        <div className="mt-6 flex justify-end">
-                          <Link
-                            href={`/dashboard/course/${openCourse.id}`}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                          >
-                            Read More
-                          </Link>
+                        <div className="mt-6 flex justify-end gap-3">
+                          {isAuthenticated ? (
+                            <Link
+                              href={`/dashboard/course/${openCourse.id}`}
+                              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                            >
+                              Read More
+                            </Link>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => setOpenCourse(null)}
+                                className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition"
+                              >
+                                Cancel
+                              </button>
+                              <Link
+                                href="/auth/sign-in"
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                              >
+                                Sign In to Continue
+                              </Link>
+                            </>
+                          )}
                         </div>
                       </>
                     )}

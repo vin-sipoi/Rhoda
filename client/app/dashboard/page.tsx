@@ -82,7 +82,7 @@ const RhodaDashboard: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#1e1e1e]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-400 mx-auto"></div>
           <p className="mt-4 text-white">Loading...</p>
         </div>
       </div>
@@ -137,6 +137,10 @@ const RhodaDashboard: React.FC = () => {
                       src={item.image && item.image.trim() !== "" ? item.image : "/file.svg"}
                       alt="course thumbnail"
                       className="w-14 h-14 rounded-full border-2 border-gray-200 object-cover flex-shrink-0"
+                      onError={(e) => {
+                        console.log('Image failed to load for course:', item.title, 'URL:', item.image);
+                        (e.target as HTMLImageElement).src = "/file.svg";
+                      }}
                     />
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 leading-tight">

@@ -124,7 +124,7 @@ const Sidebar = () => {
                 className={cn(
                   "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group",
                   isActive
-                    ? "bg-gray-400 text-white"
+                    ? "bg-[#232323] text-white"
                     : "text-gray-300 hover:bg-[#232323] hover:text-white",
                   isCollapsed && "lg:justify-center lg:px-2"
                 )}

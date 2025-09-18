@@ -49,6 +49,12 @@
       "relation": "oneToMany",
       "target": "api::user-course.user-course",
       "mappedBy": "course"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment",
+      "mappedBy": "course"
     }
   }
 }

@@ -80,6 +80,11 @@
       "relation": "oneToMany",
       "target": "api::user-course.user-course",
       "mappedBy": "user"
+    },
+    "comments": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::comment.comment"
     }
   }
 }
