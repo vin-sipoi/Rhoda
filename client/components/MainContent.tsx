@@ -1,6 +1,6 @@
 "use client"
 
-import { useSidebar } from "@/contexts/SidebarContext"
+import { useSidebarStore } from "@/stores/useSidebbarStore"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import Header from "@/components/Header"
@@ -10,7 +10,7 @@ interface MainContentProps {
 }
 
 export default function MainContent({ children }: MainContentProps) {
-  const { isCollapsed } = useSidebar()
+  const { isCollapsed } = useSidebarStore()
   const pathname = usePathname()
 
   // Don't apply margin on auth pages or landing page

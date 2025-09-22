@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { Button } from '@/components/ui/button';
 
 interface NavLinkProps {
@@ -24,7 +24,7 @@ const NavLink: React.FC<NavLinkProps> = ({ children, href = "#" }) => (
 const RhodaDashboard: React.FC = () => {
   // All hooks at the top, before any early returns
   const [searchQuery, setSearchQuery] = useState('');
-  const { user, isAuthenticated, isLoading, token } = useAuth();
+  const { user, isAuthenticated, isLoading, token } = useAuthStore();
   const router = useRouter();
   const [enrolled, setEnrolled] = useState<any[]>([]);
 

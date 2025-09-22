@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { User, Settings, LogOut, Mail, Calendar, Shield } from 'lucide-react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 interface ProfileDropdownProps {
   className?: string
@@ -10,7 +10,7 @@ interface ProfileDropdownProps {
 
 export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ className = "" }) => {
   const [isOpen, setIsOpen] = useState(false)
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuthStore()
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

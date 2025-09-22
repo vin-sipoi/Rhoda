@@ -13,13 +13,24 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Course ID is required" }, { status: 400 });
     }
 
+    // Get user's JWT token from Authorization header
+    const authorization = request.headers.get('authorization');
+    const userToken = authorization?.replace('Bearer ', '');
+    
+    // Use user token if available, otherwise fall back to server token
+    const authToken = userToken || STRAPI_TOKEN;
+    
+    if (!authToken) {
+      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+    }
+
     // Fetch comments for the course with user details populated
     const response = await fetch(
       `${STRAPI_URL}/api/comments?filters[course][id][$eq]=${courseId}&populate=*&sort=createdAt:desc`,
       {
         headers: {
           'Content-Type': 'application/json',
-          ...(STRAPI_TOKEN ? { 'Authorization': `Bearer ${STRAPI_TOKEN}` } : {}),
+          'Authorization': `Bearer ${authToken}`,
         },
       }
     );
@@ -27,6 +38,18 @@ export async function GET(request: Request) {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Failed to fetch comments from Strapi:', response.status, errorText);
+      
+      // Handle specific error cases
+      if (response.status === 403) {
+        // User doesn't have permission to access comments, return empty array
+        console.warn('User lacks permission to access comments, returning empty array');
+        return NextResponse.json({ comments: [] });
+      }
+      
+      if (response.status === 401) {
+        return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      }
+      
       return NextResponse.json({ error: "Failed to fetch comments", details: errorText }, { status: 500 });
     }
 

@@ -299,7 +299,7 @@ const CourseDetailPage: React.FC = () => {
     setLoadingComments(true);
     try {
       const authToken = localStorage.getItem('jwt');
-      const headers: HeadersInit = {
+      const headers: Record<string, string> = {
         'Content-Type': 'application/json',
       };
 
@@ -308,6 +308,14 @@ const CourseDetailPage: React.FC = () => {
       }
 
       const response = await fetch(`/api/comments?courseId=${id}`, { headers });
+      
+      if (response.status === 401) {
+        // Token expired, redirect to login
+        localStorage.removeItem('jwt');
+        window.location.href = '/auth/sign-in';
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setComments(data.comments || []);
@@ -369,9 +377,26 @@ const CourseDetailPage: React.FC = () => {
     // Load saved progress first
     loadProgress();
 
-    // Fetch course data
-    fetch(`/api/courses/${id}`)
-      .then((res) => res.json())
+    // Fetch course data with authentication
+    const authToken = localStorage.getItem('jwt');
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+    }
+
+    fetch(`/api/courses/${id}`, { headers })
+      .then((res) => {
+        if (res.status === 401) {
+          // Token expired, redirect to login
+          localStorage.removeItem('jwt');
+          window.location.href = '/auth/sign-in';
+          return;
+        }
+        return res.json();
+      })
       .then((data) => {
         if (!isMounted) return;
         if (data?.course) {

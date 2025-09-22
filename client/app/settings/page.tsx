@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { useRouter } from 'next/navigation'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,7 +19,6 @@ import {
   Lock, 
   Bell, 
   Shield, 
-  Palette, 
   Camera,
   Save,
   Loader2,
@@ -39,7 +38,7 @@ interface NotificationSettings {
 }
 
 const SettingsPage = () => {
-  const { user, token, isLoading } = useAuth()
+  const { user, token, isLoading } = useAuthStore()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData>({
@@ -251,7 +250,7 @@ const SettingsPage = () => {
         </div>
 
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 bg-[#2a2a2a] border-none">
+        <TabsList className="grid w-full grid-cols-3 bg-[#2a2a2a] border-none">
           <TabsTrigger value="profile" className="flex items-center gap-2 text-gray-300 data-[state=active]:bg-[#181818] data-[state=active]:text-white">
             <User className="h-4 w-4" />
             Profile
@@ -263,10 +262,6 @@ const SettingsPage = () => {
           <TabsTrigger value="notifications" className="flex items-center gap-2 text-gray-300 data-[state=active]:bg-[#181818] data-[state=active]:text-white">
             <Bell className="h-4 w-4" />
             Notifications
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="flex items-center gap-2 text-gray-300 data-[state=active]:bg-[#181818] data-[state=active]:text-white">
-            <Palette className="h-4 w-4" />
-            Preferences
           </TabsTrigger>
         </TabsList>
 
@@ -497,44 +492,6 @@ const SettingsPage = () => {
                 <Save className="h-4 w-4 mr-2" />
                 Save Preferences
               </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="preferences" className="space-y-6">
-          <Card className="border-none bg-[#181818] backdrop-blur supports-[backdrop-filter]:bg-[#181818]">
-            <CardHeader>
-              <CardTitle className="text-white">App Preferences</CardTitle>
-              <CardDescription className="text-gray-300">
-                Customize your app experience
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-base text-white">Theme</Label>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Choose your preferred theme
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <Button variant="outline" size="sm" className="bg-[#2a2a2a] border-gray-600 text-white hover:bg-[#3a3a3a]">Light</Button>
-                    <Button variant="outline" size="sm" className="bg-[#2a2a2a] border-gray-600 text-white hover:bg-[#3a3a3a]">Dark</Button>
-                    <Button variant="outline" size="sm" className="bg-[#2a2a2a] border-gray-600 text-white hover:bg-[#3a3a3a]">System</Button>
-                  </div>
-                </div>
-                <Separator className="bg-gray-600" />
-                <div>
-                  <Label className="text-base text-white">Language</Label>
-                  <p className="text-sm text-gray-400 mb-2">
-                    Select your preferred language
-                  </p>
-                  <select className="w-full p-2 border rounded-md bg-[#2a2a2a] border-gray-600 text-white">
-                    <option value="en">English</option>
-                    <option value="es">Spanish</option>
-                    <option value="fr">French</option>
-                  </select>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

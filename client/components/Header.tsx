@@ -3,7 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -23,7 +23,7 @@ import {
 } from 'lucide-react'
 
 const Header = () => {
-  const { user, logout, isLoading } = useAuth()
+  const { user, logout, isLoading } = useAuthStore()
   const pathname = usePathname()
   const router = useRouter()
 

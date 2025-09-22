@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
@@ -33,7 +33,7 @@ interface Course {
 }
 
 const ProfilePage = () => {
-  const { user, isLoading, token } = useAuth()
+  const { user, isLoading, token } = useAuthStore()
   const router = useRouter()
   const [recentCourses, setRecentCourses] = useState<Course[]>([])
   const [loadingCourses, setLoadingCourses] = useState(true)

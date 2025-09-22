@@ -41,7 +41,7 @@ function normalizeAttrs<T = any>(raw: any): T {
   return raw?.attributes ? (raw.attributes as T) : (raw as T);
 }
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const draftQuery = STRAPI_PREVIEW ? "&publicationState=preview" : "";
@@ -56,9 +56,16 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
       id
     )}&${qsPopulate}${draftQuery}`;
 
+    // Get user's JWT token from Authorization header
+    const authorization = req.headers.get('authorization');
+    const userToken = authorization?.replace('Bearer ', '');
+    
+    // Use user token if available, otherwise fall back to server token
+    const authToken = userToken || STRAPI_TOKEN;
+    
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
-      ...(STRAPI_TOKEN ? { Authorization: `Bearer ${STRAPI_TOKEN}` } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     };
 
     const courseRes = await fetch(courseUrl, { headers, cache: "no-store" });

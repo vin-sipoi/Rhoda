@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react";
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from "@/stores/useAuthStore";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import {
@@ -32,7 +32,7 @@ interface CourseData {
 }
 
 const DiscoverPage: React.FC = () => {
-  const { user, token, isAuthenticated } = useAuth();
+  const { user, token, isAuthenticated } = useAuthStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -44,11 +44,18 @@ const DiscoverPage: React.FC = () => {
     if (!user) return;
     
     try {
+      const authToken = token || localStorage.getItem('jwt');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`;
+      }
+
       const response = await fetch('/api/user-courses', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           courseId: courseId,
           userId: user.id,
@@ -68,11 +75,18 @@ const DiscoverPage: React.FC = () => {
     const enroll = async () => {
       if (openCourse && user) {
         try {
+          const authToken = token || localStorage.getItem('jwt');
+          const headers: Record<string, string> = {
+            'Content-Type': 'application/json',
+          };
+
+          if (authToken) {
+            headers['Authorization'] = `Bearer ${authToken}`;
+          }
+
           const response = await fetch('/api/user-courses', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({
               courseId: openCourse.id,
               userId: user.id,
@@ -96,8 +110,11 @@ const DiscoverPage: React.FC = () => {
   }, [openCourse]);
 
   useEffect(() => {
+    const authToken = localStorage.getItem('jwt');
+    const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+    
     axios
-      .get("/api/discover")
+      .get("/api/discover", { headers })
       .then((res) => {
         setCategories(res.data?.categories || []);
         setAllCourses(res.data?.courses || []);

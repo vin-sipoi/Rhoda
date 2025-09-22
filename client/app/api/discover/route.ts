@@ -112,16 +112,24 @@ function pickCategory(attrs: StrapiCourseAttributes): string {
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const query = new URLSearchParams({ populate: "*" }).toString();
 
     const draftQuery = STRAPI_PREVIEW ? "&publicationState=preview" : "";
     const effectiveUrl = `${STRAPI_URL}${STRAPI_COURSES_PATH}?${query}${draftQuery}`;
+    
+    // Get user's JWT token from Authorization header
+    const authorization = request.headers.get('authorization');
+    const userToken = authorization?.replace('Bearer ', '');
+    
+    // Use user token if available, otherwise fall back to server token
+    const authToken = userToken || STRAPI_TOKEN;
+    
     const res = await fetch(effectiveUrl, {
       headers: {
         "Content-Type": "application/json",
-        ...(STRAPI_TOKEN ? { Authorization: `Bearer ${STRAPI_TOKEN}` } : {}),
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
       },
       // Ensure we always hit Strapi on request in dev
       cache: "no-store",

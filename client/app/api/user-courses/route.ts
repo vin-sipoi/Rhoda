@@ -13,7 +13,14 @@ export async function POST(req: NextRequest) {
     }
 
     const strapiUrl = process.env.STRAPI_URL || 'http://localhost:1337';
-    const strapiToken = process.env.STRAPI_API_TOKEN || process.env.STRAPI_TOKEN;
+    const strapiServerToken = process.env.STRAPI_API_TOKEN || process.env.STRAPI_TOKEN;
+    
+    // Get user's JWT token from Authorization header
+    const authorization = req.headers.get('authorization');
+    const userToken = authorization?.replace('Bearer ', '');
+    
+    // Use user token if available, otherwise fall back to server token
+    const authToken = userToken || strapiServerToken;
 
     // Check if user is already enrolled
     const existingEnrollment = await fetch(
@@ -21,7 +28,7 @@ export async function POST(req: NextRequest) {
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${strapiToken}`,
+          'Authorization': `Bearer ${authToken}`,
         },
       }
     );
@@ -49,7 +56,7 @@ export async function POST(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${strapiToken}`,
+        'Authorization': `Bearer ${authToken}`,
       },
       body: JSON.stringify(enrollmentData)
     });

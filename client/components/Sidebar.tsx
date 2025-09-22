@@ -3,8 +3,8 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
-import { useSidebar } from '@/contexts/SidebarContext'
+import { useSidebarStore } from '@/stores/useSidebbarStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
@@ -21,9 +21,9 @@ import {
 } from 'lucide-react'
 
 const Sidebar = () => {
-  const { user, logout } = useAuth()
+  const { user, logout } = useAuthStore()
   const pathname = usePathname()
-  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen } = useSidebar()
+  const { isCollapsed, setIsCollapsed, isMobileOpen, setIsMobileOpen, toggleCollapsed, closeMobile } = useSidebarStore()
 
   // Don't show sidebar on auth pages or landing page
   if (pathname?.startsWith('/auth') || pathname === '/') {

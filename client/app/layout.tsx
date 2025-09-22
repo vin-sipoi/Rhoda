@@ -1,13 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Hahmlet, Space_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { SidebarProvider } from "@/contexts/SidebarContext";
-import { Toaster } from "@/components/ui/toaster";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
-import MainContent from "@/components/MainContent";
-
+import AppProvider from "@/components/AppProvider";
 
 const InterSans = Inter({
   variable:"--font-inter",
@@ -22,7 +16,7 @@ const hahmlet = Hahmlet({
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'], // Choose weights as needed
+  weight: ['400', '500', '600', '700'],
   variable: '--font-space-grotesk',
 })
 
@@ -52,15 +46,9 @@ export default function RootLayout({
       <body
         className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} ${roboto.variable} antialiased`}
       >
-        <AuthProvider>
-          <SidebarProvider>
-            <Sidebar />
-            <MainContent>
-              {children}
-            </MainContent>
-            <Toaster />
-          </SidebarProvider>
-        </AuthProvider>
+        <AppProvider>
+          {children}
+        </AppProvider>
       </body>
     </html>
   );

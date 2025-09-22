@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/AuthContext"
-
+import { useAuthStore } from "@/stores/useAuthStore";
 export default function GoogleRedirect() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(true);
 
