@@ -13,6 +13,7 @@
   --font-inter:var(--font-inter);
   --font-hahmlet:var(--font-hahmlet);
   --font-space-grotesk:var(--font-space-grotesk);
+  --font-roboto:var(--font-roboto);
 }
 
 @media (prefers-color-scheme: dark) {

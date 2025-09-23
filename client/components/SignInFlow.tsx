@@ -194,6 +194,7 @@ export default function SignInFlow({ onSuccess }: SignInFlowProps) {
             <Button
               variant="outline"
               className="w-full h-12 rounded-2xl bg-transparent border-white/30 text-white hover:bg-white/10 font-medium"
+              onClick={() => { window.location.href = "/api/auth/google"; }}
             >
               <div className="flex items-center space-x-3">
                 <svg width="20" height="20" viewBox="0 0 24 24" className="flex-shrink-0">

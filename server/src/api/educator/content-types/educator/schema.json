@@ -1,0 +1,44 @@
+{
+  "kind": "collectionType",
+  "collectionName": "educators",
+  "info": {
+    "singularName": "educator",
+    "pluralName": "educators",
+    "displayName": "Educator"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "Name": {
+      "type": "string",
+      "required": true
+    },
+    "age": {
+      "type": "integer",
+      "min": 13,
+      "max": 120
+    },
+    "interests": {
+      "type": "json"
+    },
+    "bio": {
+      "type": "text"
+    },
+    "experience": {
+      "type": "text"
+    },
+    "avatar": {
+      "type": "media",
+      "multiple": false,
+      "required": false,
+      "allowedTypes": ["images"]
+    },
+    "user": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "plugin::users-permissions.user"
+    }
+  }
+}

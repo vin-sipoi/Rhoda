@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Hahmlet, Space_Grotesk } from "next/font/google";
+import { Inter, Hahmlet, Space_Grotesk, Roboto } from "next/font/google";
 import "./globals.css";
-
+import AppProvider from "@/components/AppProvider";
 
 const InterSans = Inter({
   variable:"--font-inter",
@@ -16,13 +16,24 @@ const hahmlet = Hahmlet({
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'], // Choose weights as needed
+  weight: ['400', '500', '600', '700'],
   variable: '--font-space-grotesk',
+})
+
+const roboto = Roboto({
+  subsets: ['latin'],
+  weight: ['400', '500', '700', '800'],
+  variable: '--font-roboto',
 })
 
 export const metadata: Metadata = {
   title: "Rhoda App",
   description: "Best PWA out there",
+  icons: {
+    icon: '/icon.ico',
+    shortcut: '/icon.ico',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
@@ -33,9 +44,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} antialiased`}
+        className={`${InterSans.variable} ${hahmlet.variable} ${spaceGrotesk.variable} ${roboto.variable} antialiased`}
       >
-        {children}
+        <AppProvider>
+          {children}
+        </AppProvider>
       </body>
     </html>
   );
