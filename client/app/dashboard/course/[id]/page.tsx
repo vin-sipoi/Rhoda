@@ -1,19 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Link from 'next/link';
 import courseData from '../../../../data/courseData.json';
 import { ArrowLeft } from 'lucide-react';
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
-const CourseDetailPage: React.FC<Params> = ({ params }) => {
-  const { id } = params;
+const CourseDetailPage = () => {
+  const { id } = useParams<{ id: string }>();
+  if (!id) {
+    notFound();
+  }
   const course = courseData.courses.find(c => c.id === id);
   const [checkedSections, setCheckedSections] = useState<number[]>([]);
   const [isBookmarked, setIsBookmarked] = useState(false);

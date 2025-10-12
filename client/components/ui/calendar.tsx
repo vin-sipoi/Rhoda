@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react"
+import DayPicker from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -15,6 +15,32 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  type CalendarChevron = NonNullable<
+    NonNullable<CalendarProps["components"]>["Chevron"]
+  >
+  type ChevronRendererProps = Parameters<CalendarChevron>[0]
+
+  const renderChevron: CalendarChevron = ({
+    orientation = "left",
+    className: iconClassName,
+    size,
+  }: ChevronRendererProps) => {
+    const iconProps = {
+      className: cn("h-4 w-4", iconClassName),
+      size: size ?? 16,
+    }
+    if (orientation === "right") {
+      return <ChevronRight {...iconProps} />
+    }
+    if (orientation === "up") {
+      return <ChevronUp {...iconProps} />
+    }
+    if (orientation === "down") {
+      return <ChevronDown {...iconProps} />
+    }
+    return <ChevronLeft {...iconProps} />
+  }
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
@@ -54,8 +80,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
-        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        Chevron: renderChevron,
       }}
       {...props}
     />
