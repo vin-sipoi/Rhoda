@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from "next/link"; 
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/components/ui/dialog";
 import SignInFlow from "@/components/SignInFlow";
+import DarkVeil from "@/components/DarkVeil";
 
 export default function LandingPage() {
   const [showSignInDialog, setShowSignInDialog] = useState(false);
@@ -25,8 +26,8 @@ export default function LandingPage() {
 
   return (
     <div className="landing-page">
-      {/* Background Image */}
-      <div className="background-image"></div>
+  {/* Background Shader */}
+  <DarkVeil className="background-canvas" hueShift={18} noiseIntensity={0.06} scanlineIntensity={0} scanlineFrequency={1.4} warpAmount={0.38} speed={0.5} />
       
       {/* Header */}
       <header className="header">
@@ -138,16 +139,13 @@ export default function LandingPage() {
           overflow: hidden;
         }
 
-        .background-image {
+        .background-canvas {
+          position: absolute;
+          inset: 0;
           width: 100vw;
           height: 100vh;
-          position: absolute;
-          left: 0;
-          top: 0;
-          background-image: url('/background.png');
-          background-size: cover;
-          background-position: center;
-          background-repeat: no-repeat;
+          z-index: 0;
+          pointer-events: none;
         }
 
         .header {
